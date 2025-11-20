@@ -2,6 +2,9 @@ import './globals.css'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { ThemeProvider } from '@/components/theme-provider'
+import { Header } from '@/components/header'
+import { BottomNav } from '@/components/bottom-nav'
+import { createClient } from '@/utils/supabase/server'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -10,11 +13,15 @@ export const metadata: Metadata = {
     description: 'Lista do que fazer - Mariana e Breno',
 }
 
-export default function RootLayout({
+export default async function RootLayout({
     children,
 }: {
     children: React.ReactNode
 }) {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    const isAuthenticated = !!user
+
     return (
         <html lang="en" suppressHydrationWarning>
             <body className={inter.className}>
@@ -24,7 +31,11 @@ export default function RootLayout({
                     enableSystem
                     disableTransitionOnChange
                 >
-                    {children}
+                    {isAuthenticated && <Header />}
+                    <main className={isAuthenticated ? 'pb-16 md:pb-0' : ''}>
+                        {children}
+                    </main>
+                    {isAuthenticated && <BottomNav />}
                 </ThemeProvider>
             </body>
         </html>

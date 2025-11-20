@@ -1,13 +1,11 @@
 import React from 'react'
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
-import { Plus, Calendar } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer'
 import { CategoryForm } from '@/components/category-form'
 import { CategoryList } from '@/components/category-list'
-import { ThemeToggle } from '@/components/theme-toggle'
-import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
 
@@ -31,34 +29,25 @@ export default async function DashboardPage() {
                         O que estamos planejando?
                     </p>
                 </div>
-                <div className="flex gap-2">
-                    <ThemeToggle />
-                    <Link href="/calendar-view">
-                        <Button variant="outline">
-                            <Calendar className="mr-2 h-4 w-4" />
-                            Scrapbook
+                <Drawer>
+                    <DrawerTrigger asChild>
+                        <Button>
+                            <Plus className="mr-2 h-4 w-4" />
+                            Nova Categoria
                         </Button>
-                    </Link>
-                    <Drawer>
-                        <DrawerTrigger asChild>
-                            <Button>
-                                <Plus className="mr-2 h-4 w-4" />
-                                Nova Categoria
-                            </Button>
-                        </DrawerTrigger>
-                        <DrawerContent>
-                            <div className="mx-auto w-full max-w-sm">
-                                <DrawerHeader>
-                                    <DrawerTitle>Criar categoria</DrawerTitle>
-                                    <DrawerDescription>
-                                        Crie novas categorias
-                                    </DrawerDescription>
-                                </DrawerHeader>
-                                <CategoryForm />
-                            </div>
-                        </DrawerContent>
-                    </Drawer>
-                </div>
+                    </DrawerTrigger>
+                    <DrawerContent>
+                        <div className="mx-auto w-full max-w-sm">
+                            <DrawerHeader>
+                                <DrawerTitle>Criar categoria</DrawerTitle>
+                                <DrawerDescription>
+                                    Crie novas categorias
+                                </DrawerDescription>
+                            </DrawerHeader>
+                            <CategoryForm />
+                        </div>
+                    </DrawerContent>
+                </Drawer>
             </div>
 
             <div className="space-y-4">
