@@ -1,0 +1,116 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    :root {
+        /* Light mode - Notion-inspired */
+        --background: 0 0% 100%;
+        --foreground: 24 10% 22%;
+
+        --card: 0 0% 100%;
+        --card-foreground: 24 10% 22%;
+
+        --popover: 0 0% 100%;
+        --popover-foreground: 24 10% 22%;
+
+        --primary: 210 100% 40%;
+        --primary-foreground: 0 0% 100%;
+
+        --secondary: 0 0% 97%;
+        --secondary-foreground: 24 10% 22%;
+
+        --muted: 0 0% 97%;
+        --muted-foreground: 0 0% 47%;
+
+        --accent: 0 0% 97%;
+        --accent-foreground: 24 10% 22%;
+
+        --destructive: 0 84% 60%;
+        --destructive-foreground: 0 0% 100%;
+
+        --border: 0 0% 91%;
+        --input: 0 0% 91%;
+        --ring: 210 100% 40%;
+
+        --radius: 0.5rem;
+    }
+
+    .dark {
+        /* Dark mode - Notion-inspired */
+        --background: 0 0% 10%;
+        --foreground: 0 0% 90%;
+
+        --card: 0 0% 14%;
+        --card-foreground: 0 0% 90%;
+
+        --popover: 0 0% 14%;
+        --popover-foreground: 0 0% 90%;
+
+        --primary: 199 89% 48%;
+        --primary-foreground: 0 0% 100%;
+
+        --secondary: 0 0% 18%;
+        --secondary-foreground: 0 0% 90%;
+
+        --muted: 0 0% 18%;
+        --muted-foreground: 0 0% 61%;
+
+        --accent: 0 0% 18%;
+        --accent-foreground: 0 0% 90%;
+
+        --destructive: 0 63% 31%;
+        --destructive-foreground: 0 0% 100%;
+
+        --border: 0 0% 22%;
+        --input: 0 0% 22%;
+        --ring: 199 89% 48%;
+    }
+}
+
+@layer base {
+    * {
+        @apply border-border;
+    }
+
+    body {
+        @apply bg-background text-foreground;
+        font-feature-settings: "rlig" 1, "calt" 1;
+    }
+
+    /* Smooth transitions */
+    * {
+        @apply transition-colors duration-200;
+    }
+
+    /* Mobile touch target improvements */
+    button,
+    a {
+        @apply min-h-[44px] min-w-[44px];
+    }
+
+    /* Ensure proper spacing on mobile */
+    @media (max-width: 768px) {
+        .container {
+            @apply px-4;
+        }
+    }
+
+    /* Scrollbar styling */
+    ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+        @apply bg-transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        @apply bg-muted-foreground/20 rounded-full;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        @apply bg-muted-foreground/30;
+    }
+}
