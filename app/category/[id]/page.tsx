@@ -1,12 +1,13 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
-import { Plus, ArrowLeft } from 'lucide-react'
+import { Plus, ArrowLeft, BarChart3 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer'
 import { ItemForm } from '@/components/item-form'
 import { ItemList } from '@/components/item-list'
 import { ChooseForMeButton } from '@/components/choose-for-me-button'
 import { CoverReposition } from '@/components/cover-reposition'
+import { CategoryAnalytics } from '@/components/category-analytics'
 import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
@@ -82,18 +83,62 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
                             Gerencie seus itens dessa categoria
                         </p>
 
-                        {/* Choose For Me - Mobile Only (below title) */}
-                        <div className="md:hidden">
+                        {/* Mobile Actions (below title) */}
+                        <div className="md:hidden flex gap-2">
                             <ChooseForMeButton
                                 items={plannedItems}
                                 templateSchema={category.template_schema}
                             />
+                            <Drawer>
+                                <DrawerTrigger asChild>
+                                    <Button variant="outline" size="icon">
+                                        <BarChart3 className="h-4 w-4" />
+                                    </Button>
+                                </DrawerTrigger>
+                                <DrawerContent>
+                                    <div className="mx-auto w-full max-w-md p-4 h-[80vh] overflow-y-auto">
+                                        <DrawerHeader>
+                                            <DrawerTitle>Insights da Categoria</DrawerTitle>
+                                            <DrawerDescription>
+                                                Análise dos seus hábitos e itens realizados.
+                                            </DrawerDescription>
+                                        </DrawerHeader>
+                                        <CategoryAnalytics
+                                            items={items || []}
+                                            templateSchema={category.template_schema}
+                                        />
+                                    </div>
+                                </DrawerContent>
+                            </Drawer>
                         </div>
                     </div>
                 </div>
 
                 {/* Right: Desktop Actions */}
                 <div className="hidden md:flex gap-2">
+                    <Drawer>
+                        <DrawerTrigger asChild>
+                            <Button variant="outline">
+                                <BarChart3 className="mr-2 h-4 w-4" />
+                                Insights
+                            </Button>
+                        </DrawerTrigger>
+                        <DrawerContent>
+                            <div className="mx-auto w-full max-w-2xl p-4 h-[80vh] overflow-y-auto">
+                                <DrawerHeader>
+                                    <DrawerTitle>Insights da Categoria</DrawerTitle>
+                                    <DrawerDescription>
+                                        Análise dos seus hábitos e itens realizados.
+                                    </DrawerDescription>
+                                </DrawerHeader>
+                                <CategoryAnalytics
+                                    items={items || []}
+                                    templateSchema={category.template_schema}
+                                />
+                            </div>
+                        </DrawerContent>
+                    </Drawer>
+
                     <ChooseForMeButton
                         items={plannedItems}
                         templateSchema={category.template_schema}
