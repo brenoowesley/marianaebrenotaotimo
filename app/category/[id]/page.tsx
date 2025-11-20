@@ -180,9 +180,10 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
                     <DrawerTrigger asChild>
                         <Button
                             size="lg"
-                            className="fixed bottom-20 right-6 z-50 h-14 w-14 rounded-full shadow-lg"
+                            className="fixed bottom-24 right-6 z-50 shadow-lg rounded-full px-6"
                         >
-                            <Plus className="h-6 w-6" />
+                            <Plus className="mr-2 h-5 w-5" />
+                            Novo Item
                         </Button>
                     </DrawerTrigger>
                     <DrawerContent>
