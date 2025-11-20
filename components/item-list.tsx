@@ -183,7 +183,7 @@ export function ItemList({ items, templateSchema }: ItemListProps) {
         const noteSnippet = hasNotes ? item.notes.slice(0, 100) + (item.notes.length > 100 ? '...' : '') : null
 
         return (
-            <Card className="mb-3 border-border/50 bg-card/50 shadow-sm hover:bg-accent/20 active:scale-[0.98] transition-all duration-200 group">
+            <Card className="mb-3 border-border/50 bg-card/50 shadow-sm transition-all duration-200 ease-in-out hover:scale-[1.01] hover:shadow-md hover:border-primary/40 cursor-pointer group">
                 {item.item_photo_url && (
                     <div className="h-48 w-full overflow-hidden rounded-t-xl">
                         <img
@@ -312,7 +312,7 @@ export function ItemList({ items, templateSchema }: ItemListProps) {
                 >
                     <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-4">
                         {/* Left: Properties */}
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-3 mt-2">
                             {templateSchema.map((field) => (
                                 <div key={field.id}>
                                     {renderProperty(field, item.properties_value[field.id])}

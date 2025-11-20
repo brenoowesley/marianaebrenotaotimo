@@ -20,6 +20,16 @@ export default async function DashboardPage() {
         return redirect('/login')
     }
 
+    // Fetch categories
+    const { data: categories, error: categoriesError } = await supabase
+        .from('categories')
+        .select('*')
+        .order('created_at', { ascending: false })
+
+    if (categoriesError) {
+        console.error('Error fetching categories:', categoriesError)
+    }
+
     return (
         <div className="container mx-auto p-4 space-y-8">
             <div className="flex items-center justify-between">
@@ -52,7 +62,7 @@ export default async function DashboardPage() {
 
             <div className="space-y-4">
                 <h2 className="text-xl font-semibold tracking-tight">Categorias</h2>
-                <CategoryList />
+                <CategoryList categories={categories || []} />
             </div>
         </div>
     )

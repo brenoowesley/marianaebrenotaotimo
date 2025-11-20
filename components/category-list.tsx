@@ -1,10 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { createClient } from '@/utils/supabase/client'
+import { useState } from 'react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
 import {
     DropdownMenu,
@@ -27,58 +25,9 @@ interface Category {
     template_schema: any[]
 }
 
-export function CategoryList() {
-    const [categories, setCategories] = useState<Category[]>([])
-    const [loading, setLoading] = useState(true)
+export function CategoryList({ categories = [] }: { categories: Category[] }) {
     const [editingCategory, setEditingCategory] = useState<Category | null>(null)
     const [deletingCategory, setDeletingCategory] = useState<Category | null>(null)
-    const supabase = createClient()
-
-    useEffect(() => {
-        const fetchCategories = async () => {
-            const { data } = await supabase
-                .from('categories')
-                .select('*')
-                .order('created_at', { ascending: false })
-
-            if (data) {
-                setCategories(data)
-            }
-            setLoading(false)
-        }
-
-        fetchCategories()
-
-        // Subscribe to realtime changes
-        const channel = supabase
-            .channel('categories_channel')
-            .on(
-                'postgres_changes',
-                {
-                    event: '*',
-                    schema: 'public',
-                    table: 'categories',
-                },
-                () => {
-                    fetchCategories()
-                }
-            )
-            .subscribe()
-
-        return () => {
-            supabase.removeChannel(channel)
-        }
-    }, [])
-
-    if (loading) {
-        return (
-            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-                {[1, 2, 3].map((i) => (
-                    <Skeleton key={i} className="h-[200px] w-full rounded-lg" />
-                ))}
-            </div>
-        )
-    }
 
     if (categories.length === 0) {
         return (
