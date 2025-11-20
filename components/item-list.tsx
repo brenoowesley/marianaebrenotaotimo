@@ -36,8 +36,8 @@ interface TemplateField {
     id: string
     name: string
     type: 'text' | 'checkbox' | 'date' | 'link' | 'rating' | 'select'
-    icon?: string  // Custom emoji/icon
-    options?: string[]  // Options for select type
+    icon?: string
+    options?: string[]
 }
 
 interface ItemListProps {
@@ -59,11 +59,9 @@ export function ItemList({ items, templateSchema }: ItemListProps) {
         setDetailOpen(true)
     }
 
-    // Get icon for a property field - custom icon or fallback to type-based
     const getPropertyIcon = (field: TemplateField) => {
         if (field.icon) return field.icon
 
-        // Fallback icons based on type
         switch (field.type) {
             case 'date': return '📅'
             case 'link': return '🔗'
@@ -161,21 +159,24 @@ export function ItemList({ items, templateSchema }: ItemListProps) {
     }
 
     const ItemCard = ({ item }: { item: Item }) => {
+        const hasNotes = item.notes && item.notes.trim().length > 0
+        const noteSnippet = hasNotes ? item.notes.slice(0, 100) + (item.notes.length > 100 ? '...' : '') : null
+
         return (
-            <Card className="hover:bg-accent/50 transition-colors cursor-pointer border-border/40 shadow-sm mb-4 group">
+            <Card className="mb-3 border-border/50 bg-card/50 shadow-sm hover:bg-accent/20 transition-all duration-200 group">
                 {item.item_photo_url && (
-                    <div className="h-40 w-full overflow-hidden">
+                    <div className="h-48 w-full overflow-hidden">
                         <img
                             src={item.item_photo_url}
                             alt={item.title}
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         />
                     </div>
                 )}
 
-                <CardHeader className="pb-2 flex flex-row items-start justify-between space-y-0 p-5">
-                    <div className="flex-1" onClick={() => openDetail(item)}>
-                        <CardTitle className="font-semibold text-lg leading-none tracking-tight">
+                <CardHeader className="pb-3 flex flex-row items-start justify-between space-y-0 p-5">
+                    <div className="flex-1 cursor-pointer" onClick={() => openDetail(item)}>
+                        <CardTitle className="font-semibold text-lg leading-tight mb-2">
                             {item.title}
                         </CardTitle>
                         {item.rating && item.status === 'Realized' && (
@@ -185,22 +186,25 @@ export function ItemList({ items, templateSchema }: ItemListProps) {
                         )}
                     </div>
 
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 ml-4">
                         {item.status === 'Planned' && (
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-8 w-8"
+                                className="h-8 w-8 hover:bg-accent"
                                 onClick={(e) => {
                                     e.stopPropagation()
                                     setCompletingItem(item)
                                 }}
+                                title="Mark as complete"
                             >
                                 <Circle className="h-4 w-4" />
                             </Button>
                         )}
                         {item.status === 'Realized' && (
-                            <CheckCircle2 className="h-5 w-5 text-green-500" />
+                            <div className="h-8 w-8 flex items-center justify-center">
+                                <CheckCircle2 className="h-5 w-5 text-green-500" />
+                            </div>
                         )}
 
                         <DropdownMenu>
@@ -237,12 +241,30 @@ export function ItemList({ items, templateSchema }: ItemListProps) {
                     </div>
                 </CardHeader>
 
-                <CardContent className="grid gap-2.5 p-5 pt-0" onClick={() => openDetail(item)}>
-                    {templateSchema.map((field) => (
-                        <div key={field.id}>
-                            {renderProperty(field, item.properties_value[field.id])}
+                <CardContent
+                    className="p-5 pt-0 cursor-pointer"
+                    onClick={() => openDetail(item)}
+                >
+                    <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-4">
+                        {/* Left: Properties */}
+                        <div className="flex flex-wrap gap-2">
+                            {templateSchema.map((field) => (
+                                <div key={field.id}>
+                                    {renderProperty(field, item.properties_value[field.id])}
+                                </div>
+                            ))}
                         </div>
-                    ))}
+
+                        {/* Right: Note Snippet (Desktop Only) */}
+                        {noteSnippet && (
+                            <div className="hidden md:block min-w-[200px] max-w-[300px]">
+                                <div className="text-xs text-muted-foreground border-l-2 border-border/50 pl-3">
+                                    <div className="font-medium mb-1">Notes</div>
+                                    <div className="line-clamp-3">{noteSnippet}</div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </CardContent>
             </Card>
         )
