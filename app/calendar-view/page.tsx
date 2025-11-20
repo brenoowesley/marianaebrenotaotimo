@@ -49,10 +49,10 @@ export default async function CalendarViewPage() {
                     <div>
                         <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
                             <CalendarIcon className="h-8 w-8" />
-                            Calendar View
+                            Scrapbook
                         </h1>
                         <p className="text-muted-foreground">
-                            See all your realized items on a calendar.
+                            O que fizemos
                         </p>
                     </div>
                 </div>

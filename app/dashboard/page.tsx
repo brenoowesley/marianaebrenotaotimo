@@ -28,7 +28,7 @@ export default async function DashboardPage() {
                 <div>
                     <h1 className="text-3xl font-semibold tracking-tight">Lista do que fazer - Mariana e Breno</h1>
                     <p className="text-muted-foreground">
-                        Gerencie seus itens e suas categorias
+                        O que estamos planejando?
                     </p>
                 </div>
                 <div className="flex gap-2">

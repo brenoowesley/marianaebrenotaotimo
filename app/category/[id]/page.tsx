@@ -76,7 +76,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
                             {category.title}
                         </h1>
                         <p className="text-muted-foreground">
-                            Manage your items in this category.
+                            Gerencie seus itens dessa categoria
                         </p>
                     </div>
                 </div>
@@ -89,15 +89,15 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
                         <DrawerTrigger asChild>
                             <Button>
                                 <Plus className="mr-2 h-4 w-4" />
-                                Add Item
+                                Insira um item
                             </Button>
                         </DrawerTrigger>
                         <DrawerContent>
                             <div className="mx-auto w-full max-w-sm">
                                 <DrawerHeader>
-                                    <DrawerTitle>Add New Item</DrawerTitle>
+                                    <DrawerTitle>Insira um novo item</DrawerTitle>
                                     <DrawerDescription>
-                                        Fill in the details for your new item.
+                                        Preencha os detalhes do novo item.
                                     </DrawerDescription>
                                 </DrawerHeader>
                                 <ItemForm

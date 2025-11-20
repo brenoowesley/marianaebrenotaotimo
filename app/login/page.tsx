@@ -70,8 +70,8 @@ export default function LoginPage() {
         <div className="flex min-h-screen items-center justify-center bg-slate-50 p-4 dark:bg-slate-900">
             <Card className="w-full max-w-md">
                 <CardHeader>
-                    <CardTitle>Welcome back</CardTitle>
-                    <CardDescription>Enter your credentials to access your account</CardDescription>
+                    <CardTitle>Opa!</CardTitle>
+                    <CardDescription>Insira seus dados</CardDescription>
                 </CardHeader>
                 <form onSubmit={handleLogin}>
                     <CardContent className="space-y-4">
@@ -87,7 +87,7 @@ export default function LoginPage() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="password">Password</Label>
+                            <Label htmlFor="password">Senha</Label>
                             <Input
                                 id="password"
                                 type="password"
