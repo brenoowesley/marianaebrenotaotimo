@@ -1,8 +1,10 @@
 export default function Home() {
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen">
-            <h1 className="text-4xl font-bold">Mariana e Breno tá ótimo</h1>
-            <p className="text-muted-foreground mt-2">Lista do que fazer</p>
+        <div className="flex items-center justify-center min-h-screen">
+            <div className="flex flex-col items-center gap-4">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                <p className="text-sm text-muted-foreground">Carregando...</p>
+            </div>
         </div>
     )
 }
