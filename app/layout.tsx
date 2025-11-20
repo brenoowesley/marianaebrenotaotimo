@@ -11,6 +11,14 @@ const inter = Inter({ subsets: ['latin'] })
 export const metadata: Metadata = {
     title: 'Mariana e Breno tá ótimo',
     description: 'Lista do que fazer - Mariana e Breno',
+    appleWebApp: {
+        capable: true,
+        title: 'MB Tá Ótimo',
+        statusBarStyle: 'black-translucent',
+    },
+    formatDetection: {
+        telephone: false,
+    },
 }
 
 export default async function RootLayout({
