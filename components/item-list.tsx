@@ -1,6 +1,8 @@
+
+
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -22,6 +24,26 @@ import { DeleteItemDialog } from '@/components/delete-item-dialog'
 import { CompleteItemModal } from '@/components/complete-item-modal'
 import { StarRating } from '@/components/star-rating'
 
+import {
+    DndContext,
+    DragStartEvent,
+    DragEndEvent,
+    closestCenter,
+    KeyboardSensor,
+    PointerSensor,
+    TouchSensor,
+    useSensor,
+    useSensors,
+} from '@dnd-kit/core'
+import {
+    SortableContext,
+    arrayMove,
+    useSortable,
+    verticalListSortingStrategy,
+    sortableKeyboardCoordinates,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+
 interface Item {
     id: string
     title: string
@@ -30,6 +52,7 @@ interface Item {
     notes: string
     item_photo_url: string | null
     rating: number | null
+    order_index: number | null
 }
 
 interface TemplateField {
@@ -45,14 +68,80 @@ interface ItemListProps {
     templateSchema: TemplateField[]
 }
 
+interface SortableItemProps {
+    id: string
+    children: React.ReactNode
+}
+
+const SortableItem = ({ id, children }: SortableItemProps) => {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging,
+    } = useSortable({ id: id })
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        zIndex: isDragging ? 10 : 0, // Ensure dragging item is on top
+        opacity: isDragging ? 0.8 : 1,
+    }
+
+    return (
+        <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+            {children}
+        </div>
+    )
+}
+
 export function ItemList({ items, templateSchema }: ItemListProps) {
     const [selectedItem, setSelectedItem] = useState<Item | null>(null)
     const [detailOpen, setDetailOpen] = useState(false)
     const [editingItem, setEditingItem] = useState<Item | null>(null)
     const [deletingItem, setDeletingItem] = useState<Item | null>(null)
     const [completingItem, setCompletingItem] = useState<Item | null>(null)
+    const [activeId, setActiveId] = useState<string | null>(null)
+
+    // Local state for optimistic updates
+    const [plannedItems, setPlannedItems] = useState<Item[]>([])
+    const [realizedItems, setRealizedItems] = useState<Item[]>([])
+
     const supabase = createClient()
     const router = useRouter()
+
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 8, // 8px movement required to start drag, prevents accidental drags on clicks
+            },
+        }),
+        useSensor(TouchSensor, {
+            activationConstraint: {
+                delay: 250,
+                tolerance: 5,
+            },
+        }),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        })
+    )
+
+    // Initialize local state when items prop changes
+    useEffect(() => {
+        const planned = items
+            .filter((i) => i.status === 'Planned')
+            .sort((a, b) => (a.order_index || 0) - (b.order_index || 0))
+
+        const realized = items
+            .filter((i) => i.status === 'Realized')
+            .sort((a, b) => (a.order_index || 0) - (b.order_index || 0))
+
+        setPlannedItems(planned)
+        setRealizedItems(realized)
+    }, [items])
 
     const openDetail = (item: Item) => {
         setSelectedItem(item)
@@ -72,10 +161,61 @@ export function ItemList({ items, templateSchema }: ItemListProps) {
 
         if (error) {
             console.error('Error updating status:', error)
-            // Revert on error would require more complex state management or another refresh
             router.refresh()
         } else {
             router.refresh()
+        }
+    }
+
+    const handleDragStart = (event: DragStartEvent) => {
+        setActiveId(event.active.id as string)
+    }
+
+    const handleDragEnd = async (event: DragEndEvent) => {
+        const { active, over } = event
+        setActiveId(null)
+
+        if (!over || active.id === over.id) return
+
+        const isPlanned = plannedItems.some(i => i.id === active.id)
+        const currentList = isPlanned ? plannedItems : realizedItems
+        const setItems = isPlanned ? setPlannedItems : setRealizedItems
+
+        const oldIndex = currentList.findIndex((item) => item.id === active.id)
+        const newIndex = currentList.findIndex((item) => item.id === over.id)
+
+        if (oldIndex !== -1 && newIndex !== -1) {
+            const newItems = arrayMove(currentList, oldIndex, newIndex)
+
+            // Optimistic update
+            setItems(newItems)
+
+            // Calculate new order_index
+            let newOrderIndex: number
+            const prevItem = newItems[newIndex - 1]
+            const nextItem = newItems[newIndex + 1]
+
+            if (!prevItem && !nextItem) {
+                newOrderIndex = 1000
+            } else if (!prevItem) {
+                newOrderIndex = (nextItem.order_index || 0) / 2
+            } else if (!nextItem) {
+                newOrderIndex = (prevItem.order_index || 0) + 1000
+            } else {
+                newOrderIndex = ((prevItem.order_index || 0) + (nextItem.order_index || 0)) / 2
+            }
+
+            // Update Supabase
+            const { error } = await supabase
+                .from('items')
+                .update({ order_index: newOrderIndex })
+                .eq('id', active.id)
+
+            if (error) {
+                console.error('Error updating order:', error)
+                // Revert (optional, or just refresh)
+                router.refresh()
+            }
         }
     }
 
@@ -183,7 +323,7 @@ export function ItemList({ items, templateSchema }: ItemListProps) {
         const noteSnippet = hasNotes ? item.notes.slice(0, 100) + (item.notes.length > 100 ? '...' : '') : null
 
         return (
-            <Card className="mb-3 border-border/50 bg-card/50 shadow-sm transition-all duration-200 ease-in-out hover:scale-[1.01] hover:shadow-md hover:border-primary/40 cursor-pointer group">
+            <Card className="mb-3 border-border/50 bg-card/50 shadow-sm transition-all duration-200 ease-in-out hover:scale-[1.01] hover:shadow-md hover:border-primary/40 cursor-pointer group touch-manipulation">
                 {item.item_photo_url && (
                     <div className="h-48 w-full overflow-hidden rounded-t-xl">
                         <img
@@ -236,6 +376,7 @@ export function ItemList({ items, templateSchema }: ItemListProps) {
                                                     window.open(googleCalendarUrl, '_blank')
                                                 }}
                                                 title="Add to Google Calendar"
+                                                onPointerDown={(e) => e.stopPropagation()}
                                             >
                                                 <CalendarPlus className="h-4 w-4" />
                                             </Button>
@@ -252,6 +393,7 @@ export function ItemList({ items, templateSchema }: ItemListProps) {
                                         setCompletingItem(item)
                                     }}
                                     title="Mark as complete"
+                                    onPointerDown={(e) => e.stopPropagation()}
                                 >
                                     <Circle className="h-4 w-4" />
                                 </Button>
@@ -267,13 +409,14 @@ export function ItemList({ items, templateSchema }: ItemListProps) {
                                     toggleItemStatus(item)
                                 }}
                                 title="Mark as planned"
+                                onPointerDown={(e) => e.stopPropagation()}
                             >
                                 <CheckCircle2 className="h-5 w-5" />
                             </Button>
                         )}
 
                         <DropdownMenu>
-                            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()} onPointerDown={(e) => e.stopPropagation()}>
                                 <Button
                                     variant="ghost"
                                     size="icon"
@@ -335,35 +478,53 @@ export function ItemList({ items, templateSchema }: ItemListProps) {
         )
     }
 
-    const plannedItems = items.filter((i) => i.status === 'Planned')
-    const realizedItems = items.filter((i) => i.status === 'Realized')
-
     return (
-        <>
+        <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+        >
             <Tabs defaultValue="planned" className="w-full">
                 <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="planned">Planned ({plannedItems.length})</TabsTrigger>
                     <TabsTrigger value="realized">Realized ({realizedItems.length})</TabsTrigger>
                 </TabsList>
+
                 <TabsContent value="planned" className="mt-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
                     {plannedItems.length === 0 && (
                         <div className="text-center text-muted-foreground py-8">
                             No planned items.
                         </div>
                     )}
-                    {plannedItems.map((item) => (
-                        <ItemCard key={item.id} item={item} />
-                    ))}
+                    <SortableContext
+                        items={plannedItems.map(i => i.id)}
+                        strategy={verticalListSortingStrategy}
+                    >
+                        {plannedItems.map((item) => (
+                            <SortableItem key={item.id} id={item.id}>
+                                <ItemCard item={item} />
+                            </SortableItem>
+                        ))}
+                    </SortableContext>
                 </TabsContent>
+
                 <TabsContent value="realized" className="mt-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
                     {realizedItems.length === 0 && (
                         <div className="text-center text-muted-foreground py-8">
                             No realized items yet.
                         </div>
                     )}
-                    {realizedItems.map((item) => (
-                        <ItemCard key={item.id} item={item} />
-                    ))}
+                    <SortableContext
+                        items={realizedItems.map(i => i.id)}
+                        strategy={verticalListSortingStrategy}
+                    >
+                        {realizedItems.map((item) => (
+                            <SortableItem key={item.id} id={item.id}>
+                                <ItemCard item={item} />
+                            </SortableItem>
+                        ))}
+                    </SortableContext>
                 </TabsContent>
             </Tabs>
 
@@ -401,6 +562,6 @@ export function ItemList({ items, templateSchema }: ItemListProps) {
                     onOpenChange={(open) => !open && setCompletingItem(null)}
                 />
             )}
-        </>
+        </DndContext>
     )
 }
