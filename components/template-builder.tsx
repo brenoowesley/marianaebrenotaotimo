@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 
-export type FieldType = 'text' | 'checkbox' | 'date' | 'link' | 'rating' | 'select'
+export type FieldType = 'text' | 'checkbox' | 'date' | 'link' | 'rating' | 'select' | 'tags'
 
 export interface TemplateField {
     id: string
@@ -128,6 +128,7 @@ export function TemplateBuilder({ fields, onChange }: TemplateBuilderProps) {
                                         <SelectItem value="link">Link</SelectItem>
                                         <SelectItem value="rating">Rating</SelectItem>
                                         <SelectItem value="select">Select List</SelectItem>
+                                        <SelectItem value="tags">Tags / Multi-Select</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>

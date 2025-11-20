@@ -15,7 +15,7 @@ interface Item {
 interface TemplateField {
     id: string
     name: string
-    type: 'text' | 'checkbox' | 'date' | 'link' | 'rating' | 'select'
+    type: 'text' | 'checkbox' | 'date' | 'link' | 'rating' | 'select' | 'tags'
     icon?: string
     options?: string[]
 }
@@ -63,6 +63,36 @@ export function CategoryAnalytics({ items, templateSchema }: CategoryAnalyticsPr
                 option,
                 count,
                 percentage: total > 0 ? Math.round((count / total) * 100) : 0
+            }))
+
+            return {
+                fieldName: field.name,
+                icon: field.icon,
+                distribution: distribution.sort((a, b) => b.count - a.count) // Sort by count desc
+            }
+        })
+
+    // Calculate tag field frequencies
+    const tagFieldStats = templateSchema
+        .filter(field => field.type === 'tags')
+        .map(field => {
+            const tagCounts: Record<string, number> = {}
+
+            // Count occurrences
+            realizedItems.forEach(item => {
+                const tags = item.properties_value[field.id]
+                if (Array.isArray(tags)) {
+                    tags.forEach((tag: string) => {
+                        tagCounts[tag] = (tagCounts[tag] || 0) + 1
+                    })
+                }
+            })
+
+            // Calculate percentages (relative to total realized items)
+            const distribution = Object.entries(tagCounts).map(([tag, count]) => ({
+                tag,
+                count,
+                percentage: totalCount > 0 ? Math.round((count / totalCount) * 100) : 0
             }))
 
             return {
@@ -121,8 +151,8 @@ export function CategoryAnalytics({ items, templateSchema }: CategoryAnalyticsPr
                                     <Star
                                         key={i}
                                         className={`h-4 w-4 ${i < Math.round(averageRating)
-                                                ? 'fill-yellow-500 text-yellow-500'
-                                                : 'fill-muted text-muted'
+                                            ? 'fill-yellow-500 text-yellow-500'
+                                            : 'fill-muted text-muted'
                                             }`}
                                     />
                                 ))}
@@ -138,7 +168,7 @@ export function CategoryAnalytics({ items, templateSchema }: CategoryAnalyticsPr
             {/* Select Field Distributions */}
             {selectFieldStats.length > 0 && (
                 <div className="space-y-6">
-                    <h3 className="font-semibold text-lg">Distribuição</h3>
+                    <h3 className="font-semibold text-lg">Distribuição (Seleção)</h3>
 
                     {selectFieldStats.map((stat, index) => (
                         <Card key={index}>
@@ -166,11 +196,46 @@ export function CategoryAnalytics({ items, templateSchema }: CategoryAnalyticsPr
                 </div>
             )}
 
-            {/* No Select Fields Message */}
-            {selectFieldStats.length === 0 && (
+            {/* Tag Field Frequencies */}
+            {tagFieldStats.length > 0 && (
+                <div className="space-y-6">
+                    <h3 className="font-semibold text-lg">Frequência (Tags)</h3>
+
+                    {tagFieldStats.map((stat, index) => (
+                        <Card key={index}>
+                            <CardHeader>
+                                <CardTitle className="text-base flex items-center gap-2">
+                                    {stat.icon && <span>{stat.icon}</span>}
+                                    {stat.fieldName}
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                {stat.distribution.length > 0 ? (
+                                    stat.distribution.map((item) => (
+                                        <div key={item.tag} className="space-y-2">
+                                            <div className="flex items-center justify-between text-sm">
+                                                <span className="font-medium">{item.tag}</span>
+                                                <span className="text-muted-foreground">
+                                                    {item.count} ({item.percentage}%)
+                                                </span>
+                                            </div>
+                                            <Progress value={item.percentage} className="h-2" />
+                                        </div>
+                                    ))
+                                ) : (
+                                    <p className="text-sm text-muted-foreground">Nenhuma tag utilizada ainda.</p>
+                                )}
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+            )}
+
+            {/* No Data Message */}
+            {selectFieldStats.length === 0 && tagFieldStats.length === 0 && (
                 <Card>
                     <CardContent className="py-6 text-center text-sm text-muted-foreground">
-                        Adicione campos do tipo "Seleção" ao template para ver distribuições detalhadas.
+                        Adicione campos do tipo "Seleção" ou "Tags" ao template para ver distribuições detalhadas.
                     </CardContent>
                 </Card>
             )}

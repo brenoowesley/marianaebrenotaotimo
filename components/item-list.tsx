@@ -44,6 +44,24 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 
+import { Filter, X } from 'lucide-react'
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover"
+import {
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList,
+    CommandSeparator,
+} from "@/components/ui/command"
+import { Check } from "lucide-react"
+import { cn } from "@/lib/utils"
+
 interface Item {
     id: string
     title: string
@@ -58,7 +76,7 @@ interface Item {
 interface TemplateField {
     id: string
     name: string
-    type: 'text' | 'checkbox' | 'date' | 'link' | 'rating' | 'select'
+    type: 'text' | 'checkbox' | 'date' | 'link' | 'rating' | 'select' | 'tags'
     icon?: string
     options?: string[]
 }
@@ -66,6 +84,7 @@ interface TemplateField {
 interface ItemListProps {
     items: Item[]
     templateSchema: TemplateField[]
+    existingTags?: Record<string, string[]>
 }
 
 interface SortableItemProps {
@@ -97,13 +116,16 @@ const SortableItem = ({ id, children }: SortableItemProps) => {
     )
 }
 
-export function ItemList({ items, templateSchema }: ItemListProps) {
+export function ItemList({ items, templateSchema, existingTags = {} }: ItemListProps) {
     const [selectedItem, setSelectedItem] = useState<Item | null>(null)
     const [detailOpen, setDetailOpen] = useState(false)
     const [editingItem, setEditingItem] = useState<Item | null>(null)
     const [deletingItem, setDeletingItem] = useState<Item | null>(null)
     const [completingItem, setCompletingItem] = useState<Item | null>(null)
     const [activeId, setActiveId] = useState<string | null>(null)
+
+    // Filter state: fieldId -> selected values array
+    const [filters, setFilters] = useState<Record<string, string[]>>({})
 
     // Local state for optimistic updates
     const [plannedItems, setPlannedItems] = useState<Item[]>([])
@@ -129,19 +151,58 @@ export function ItemList({ items, templateSchema }: ItemListProps) {
         })
     )
 
-    // Initialize local state when items prop changes
+    // Initialize local state when items prop changes or filters change
     useEffect(() => {
-        const planned = items
+        let filteredItems = items
+
+        // Apply filters
+        if (Object.keys(filters).length > 0) {
+            filteredItems = items.filter(item => {
+                return Object.entries(filters).every(([fieldId, selectedValues]) => {
+                    if (selectedValues.length === 0) return true
+
+                    const itemValue = item.properties_value[fieldId]
+
+                    // Handle array (tags)
+                    if (Array.isArray(itemValue)) {
+                        return selectedValues.some(val => itemValue.includes(val))
+                    }
+
+                    // Handle single value (select)
+                    return selectedValues.includes(itemValue)
+                })
+            })
+        }
+
+        const planned = filteredItems
             .filter((i) => i.status === 'Planned')
             .sort((a, b) => (a.order_index || 0) - (b.order_index || 0))
 
-        const realized = items
+        const realized = filteredItems
             .filter((i) => i.status === 'Realized')
             .sort((a, b) => (a.order_index || 0) - (b.order_index || 0))
 
         setPlannedItems(planned)
         setRealizedItems(realized)
-    }, [items])
+    }, [items, filters])
+
+    const toggleFilter = (fieldId: string, value: string) => {
+        setFilters(prev => {
+            const current = prev[fieldId] || []
+            const updated = current.includes(value)
+                ? current.filter(v => v !== value)
+                : [...current, value]
+
+            if (updated.length === 0) {
+                const { [fieldId]: _, ...rest } = prev
+                return rest
+            }
+
+            return { ...prev, [fieldId]: updated }
+        })
+    }
+
+    const clearFilters = () => setFilters({})
 
     const openDetail = (item: Item) => {
         setSelectedItem(item)
@@ -305,6 +366,22 @@ export function ItemList({ items, templateSchema }: ItemListProps) {
                         </Badge>
                     </div>
                 )
+
+            case 'tags':
+                return Array.isArray(value) && value.length > 0 ? (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <span className="flex h-6 w-6 items-center justify-center rounded-md border bg-background/50 text-xs">
+                            {icon}
+                        </span>
+                        <div className="flex flex-wrap gap-1">
+                            {value.map((tag: string) => (
+                                <Badge key={tag} variant="secondary" className="font-normal text-[10px] px-1.5 h-5">
+                                    {tag}
+                                </Badge>
+                            ))}
+                        </div>
+                    </div>
+                ) : null
 
             default:
                 return (
@@ -485,6 +562,126 @@ export function ItemList({ items, templateSchema }: ItemListProps) {
             onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
         >
+            {/* Filter Bar */}
+            <div className="mb-4 flex flex-wrap items-center gap-2">
+                {templateSchema
+                    .filter(field => field.type === 'select' || field.type === 'tags')
+                    .map(field => {
+                        const options = field.type === 'select'
+                            ? field.options || []
+                            : existingTags[field.id] || []
+
+                        if (options.length === 0) return null
+
+                        const activeFilters = filters[field.id] || []
+
+                        return (
+                            <Popover key={field.id}>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className={cn(
+                                            "h-8 border-dashed",
+                                            activeFilters.length > 0 && "bg-accent text-accent-foreground border-solid"
+                                        )}
+                                    >
+                                        <Filter className="mr-2 h-3 w-3" />
+                                        {field.name}
+                                        {activeFilters.length > 0 && (
+                                            <>
+                                                <span className="mx-2 h-4 w-[1px] bg-border" />
+                                                <Badge
+                                                    variant="secondary"
+                                                    className="rounded-sm px-1 font-normal lg:hidden"
+                                                >
+                                                    {activeFilters.length}
+                                                </Badge>
+                                                <div className="hidden lg:flex space-x-1">
+                                                    {activeFilters.length > 2 ? (
+                                                        <Badge variant="secondary" className="rounded-sm px-1 font-normal">
+                                                            {activeFilters.length} selected
+                                                        </Badge>
+                                                    ) : (
+                                                        activeFilters.map(option => (
+                                                            <Badge
+                                                                key={option}
+                                                                variant="secondary"
+                                                                className="rounded-sm px-1 font-normal"
+                                                            >
+                                                                {option}
+                                                            </Badge>
+                                                        ))
+                                                    )}
+                                                </div>
+                                            </>
+                                        )}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-[200px] p-0" align="start">
+                                    <Command>
+                                        <CommandInput placeholder={`Filter ${field.name}...`} />
+                                        <CommandList>
+                                            <CommandEmpty>No results found.</CommandEmpty>
+                                            <CommandGroup>
+                                                {options.map(option => {
+                                                    const isSelected = activeFilters.includes(option)
+                                                    return (
+                                                        <CommandItem
+                                                            key={option}
+                                                            onSelect={() => toggleFilter(field.id, option)}
+                                                        >
+                                                            <div
+                                                                className={cn(
+                                                                    "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
+                                                                    isSelected
+                                                                        ? "bg-primary text-primary-foreground"
+                                                                        : "opacity-50 [&_svg]:invisible"
+                                                                )}
+                                                            >
+                                                                <Check className={cn("h-4 w-4")} />
+                                                            </div>
+                                                            <span>{option}</span>
+                                                        </CommandItem>
+                                                    )
+                                                })}
+                                            </CommandGroup>
+                                            {activeFilters.length > 0 && (
+                                                <>
+                                                    <CommandSeparator />
+                                                    <CommandGroup>
+                                                        <CommandItem
+                                                            onSelect={() => setFilters(prev => {
+                                                                const { [field.id]: _, ...rest } = prev
+                                                                return rest
+                                                            })}
+                                                            className="justify-center text-center"
+                                                        >
+                                                            Clear filters
+                                                        </CommandItem>
+                                                    </CommandGroup>
+                                                </>
+                                            )}
+                                        </CommandList>
+                                    </Command>
+                                </PopoverContent>
+                            </Popover>
+                        )
+                    })}
+
+                {Object.keys(filters).length > 0 && (
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={clearFilters}
+                        className="h-8 px-2 lg:px-3"
+                    >
+                        Reset
+                        <X className="ml-2 h-4 w-4" />
+                    </Button>
+                )}
+            </div>
+
             <Tabs defaultValue="planned" className="w-full">
                 <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="planned">Planned ({plannedItems.length})</TabsTrigger>
@@ -541,6 +738,7 @@ export function ItemList({ items, templateSchema }: ItemListProps) {
                 <EditItemDialog
                     item={editingItem}
                     templateSchema={templateSchema}
+                    existingTags={existingTags}
                     open={!!editingItem}
                     onOpenChange={(open) => !open && setEditingItem(null)}
                 />

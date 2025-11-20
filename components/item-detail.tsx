@@ -2,10 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/utils/supabase/client'
-import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
-import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
 import {
     Dialog,
     DialogContent,
@@ -14,9 +10,15 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { Badge } from '@/components/ui/badge'
 import { StarRating } from '@/components/star-rating'
-import { X } from 'lucide-react'
+import { X, ExternalLink, Calendar, CheckSquare, Type, Hash } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { format } from 'date-fns'
 
 interface Item {
     id: string
@@ -31,7 +33,7 @@ interface Item {
 interface TemplateField {
     id: string
     name: string
-    type: 'text' | 'checkbox' | 'date' | 'link' | 'rating' | 'select'
+    type: 'text' | 'checkbox' | 'date' | 'link' | 'rating' | 'select' | 'tags'
     icon?: string
     options?: string[]
 }
@@ -132,6 +134,84 @@ export function ItemDetail({ item, open, onOpenChange, templateSchema }: ItemDet
         }
     }
 
+    const renderProperty = (field: TemplateField, value: any) => {
+        if (value === undefined || value === null || value === '') return null
+
+        const icon = field.icon ? (
+            <span className="mr-2">{field.icon}</span>
+        ) : (
+            <Hash className="mr-2 h-4 w-4 text-muted-foreground" />
+        )
+
+        switch (field.type) {
+            case 'link':
+                return (
+                    <a
+                        href={value}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center text-blue-500 hover:underline"
+                    >
+                        {icon}
+                        {value}
+                        <ExternalLink className="ml-1 h-3 w-3" />
+                    </a>
+                )
+            case 'date':
+                return (
+                    <div className="flex items-center text-muted-foreground">
+                        <Calendar className="mr-2 h-4 w-4" />
+                        {format(new Date(value), 'PPP')}
+                    </div>
+                )
+            case 'checkbox':
+                return (
+                    <div className="flex items-center text-muted-foreground">
+                        <CheckSquare className="mr-2 h-4 w-4" />
+                        {value ? 'Yes' : 'No'}
+                    </div>
+                )
+            case 'rating':
+                return (
+                    <div className="flex items-center">
+                        {icon}
+                        <StarRating value={Number(value)} readonly size="sm" />
+                    </div>
+                )
+            case 'select':
+                return (
+                    <div className="flex items-center">
+                        {icon}
+                        <Badge variant="secondary" className="font-normal">
+                            {value}
+                        </Badge>
+                    </div>
+                )
+            case 'tags':
+                return Array.isArray(value) && value.length > 0 ? (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <span className="flex h-6 w-6 items-center justify-center rounded-md border bg-background/50 text-xs">
+                            {field.icon}
+                        </span>
+                        <div className="flex flex-wrap gap-1">
+                            {value.map((tag: string) => (
+                                <Badge key={tag} variant="secondary" className="font-normal text-xs">
+                                    {tag}
+                                </Badge>
+                            ))}
+                        </div>
+                    </div>
+                ) : null
+            default:
+                return (
+                    <div className="flex items-center text-muted-foreground">
+                        <Type className="mr-2 h-4 w-4" />
+                        {String(value)}
+                    </div>
+                )
+        }
+    }
+
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
@@ -174,14 +254,16 @@ export function ItemDetail({ item, open, onOpenChange, templateSchema }: ItemDet
                 <div className="grid gap-4 py-4">
                     <div className="space-y-2">
                         <Label>Properties</Label>
-                        <div className="text-sm space-y-1">
+                        <div className="text-sm space-y-2">
                             {templateSchema.map((field) => {
                                 const value = item.properties_value[field.id]
                                 if (value === undefined || value === null || value === '') return null
                                 return (
-                                    <div key={field.id} className="flex justify-between">
-                                        <span className="text-muted-foreground">{field.name}:</span>
-                                        <span>{String(value)}</span>
+                                    <div key={field.id} className="flex flex-col gap-1">
+                                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                                            {field.name}
+                                        </span>
+                                        {renderProperty(field, value)}
                                     </div>
                                 )
                             })}

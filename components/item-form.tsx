@@ -15,10 +15,12 @@ import { CalendarIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { DrawerClose, DrawerFooter } from '@/components/ui/drawer'
 
+import { MultiSelect } from '@/components/ui/multi-select'
+
 interface TemplateField {
     id: string
     name: string
-    type: 'text' | 'checkbox' | 'date' | 'link' | 'rating' | 'select'
+    type: 'text' | 'checkbox' | 'date' | 'link' | 'rating' | 'select' | 'tags'
     icon?: string
     options?: string[]
 }
@@ -26,10 +28,11 @@ interface TemplateField {
 interface ItemFormProps {
     categoryId: string
     templateSchema: TemplateField[]
+    existingTags?: Record<string, string[]>
     onSuccess?: () => void
 }
 
-export function ItemForm({ categoryId, templateSchema, onSuccess }: ItemFormProps) {
+export function ItemForm({ categoryId, templateSchema, existingTags = {}, onSuccess }: ItemFormProps) {
     const [title, setTitle] = useState('')
     const [properties, setProperties] = useState<Record<string, any>>({})
     const [loading, setLoading] = useState(false)
@@ -156,6 +159,15 @@ export function ItemForm({ categoryId, templateSchema, onSuccess }: ItemFormProp
                         </SelectContent>
                     </Select>
                 ) : null
+            case 'tags':
+                return (
+                    <MultiSelect
+                        options={existingTags[field.id] || []}
+                        selected={properties[field.id] || []}
+                        onChange={(selected) => handlePropertyChange(field.id, selected)}
+                        placeholder={`Select ${field.name}...`}
+                    />
+                )
             default:
                 return null
         }

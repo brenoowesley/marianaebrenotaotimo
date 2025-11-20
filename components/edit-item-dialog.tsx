@@ -20,10 +20,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { StarRating } from '@/components/star-rating'
 import { X } from 'lucide-react'
 
+import { MultiSelect } from '@/components/ui/multi-select'
+
 interface TemplateField {
     id: string
     name: string
-    type: 'text' | 'checkbox' | 'date' | 'link' | 'rating' | 'select'
+    type: 'text' | 'checkbox' | 'date' | 'link' | 'rating' | 'select' | 'tags'
     icon?: string
     options?: string[]
 }
@@ -39,11 +41,12 @@ interface EditItemDialogProps {
         rating: number | null
     }
     templateSchema: TemplateField[]
+    existingTags?: Record<string, string[]>
     open: boolean
     onOpenChange: (open: boolean) => void
 }
 
-export function EditItemDialog({ item, templateSchema, open, onOpenChange }: EditItemDialogProps) {
+export function EditItemDialog({ item, templateSchema, existingTags = {}, open, onOpenChange }: EditItemDialogProps) {
     const [title, setTitle] = useState(item.title)
     const [status, setStatus] = useState(item.status)
     const [properties, setProperties] = useState(item.properties_value)
@@ -282,6 +285,18 @@ export function EditItemDialog({ item, templateSchema, open, onOpenChange }: Edi
                                                     ))}
                                                 </SelectContent>
                                             </Select>
+                                        )}
+
+                                        {field.type === 'tags' && (
+                                            <MultiSelect
+                                                options={existingTags[field.id] || []}
+                                                selected={properties[field.id] || []}
+                                                onChange={(selected) => setProperties({
+                                                    ...properties,
+                                                    [field.id]: selected
+                                                })}
+                                                placeholder={`Select ${field.name}...`}
+                                            />
                                         )}
                                     </div>
                                 ))}

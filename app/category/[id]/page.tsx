@@ -53,6 +53,21 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
 
     const plannedItems = (items || []).filter((item) => item.status === 'Planned')
 
+    // Extract existing tags for each field
+    const existingTags: Record<string, string[]> = {}
+    category.template_schema.forEach((field: any) => {
+        if (field.type === 'tags') {
+            const tags = new Set<string>()
+            items?.forEach((item) => {
+                const itemTags = item.properties_value[field.id]
+                if (Array.isArray(itemTags)) {
+                    itemTags.forEach((tag) => tags.add(tag))
+                }
+            })
+            existingTags[field.id] = Array.from(tags)
+        }
+    })
+
     return (
         <div className="container mx-auto p-4 pb-24 space-y-6">
             {category.cover_image_url && (
@@ -161,6 +176,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
                                 <ItemForm
                                     categoryId={category.id}
                                     templateSchema={category.template_schema}
+                                    existingTags={existingTags}
                                 />
                             </div>
                         </DrawerContent>
@@ -172,6 +188,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
             <ItemList
                 items={items || []}
                 templateSchema={category.template_schema}
+                existingTags={existingTags}
             />
 
             {/* Floating Action Button (Mobile Only) */}
@@ -197,6 +214,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
                             <ItemForm
                                 categoryId={category.id}
                                 templateSchema={category.template_schema}
+                                existingTags={existingTags}
                             />
                         </div>
                     </DrawerContent>

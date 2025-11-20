@@ -18,13 +18,21 @@ import { Textarea } from '@/components/ui/textarea'
 import { StarRating } from '@/components/star-rating'
 import { X } from 'lucide-react'
 
+interface TemplateField {
+    id: string
+    name: string
+    type: 'text' | 'checkbox' | 'date' | 'link' | 'rating' | 'select' | 'tags'
+    icon?: string
+    options?: string[]
+}
+
 interface CompleteItemModalProps {
     item: {
         id: string
         title: string
         properties_value: Record<string, any>
     }
-    templateSchema: any[]
+    templateSchema: TemplateField[]
     open: boolean
     onOpenChange: (open: boolean) => void
 }
