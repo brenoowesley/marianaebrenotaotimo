@@ -53,7 +53,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
     const plannedItems = (items || []).filter((item) => item.status === 'Planned')
 
     return (
-        <div className="container mx-auto p-4 space-y-8">
+        <div className="container mx-auto p-4 pb-24 space-y-6">
             {category.cover_image_url && (
                 <div className="-mt-4 -mx-4 mb-6">
                     <CoverReposition
@@ -64,24 +64,36 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
                 </div>
             )}
 
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
+            {/* Header - Mobile First Layout */}
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                {/* Left: Back Button + Title */}
+                <div className="flex items-start gap-3">
                     <Link href="/dashboard">
-                        <Button variant="ghost" size="icon">
+                        <Button variant="ghost" size="icon" className="mt-1">
                             <ArrowLeft className="h-4 w-4" />
                         </Button>
                     </Link>
-                    <div>
-                        <h1 className="text-3xl font-semibold tracking-tight flex items-center gap-2">
+                    <div className="flex-1">
+                        <h1 className="text-2xl md:text-4xl font-semibold tracking-tight flex items-center gap-2 break-words">
                             <span>{category.icon}</span>
                             {category.title}
                         </h1>
-                        <p className="text-muted-foreground">
+                        <p className="text-muted-foreground mt-1 mb-6">
                             Gerencie seus itens dessa categoria
                         </p>
+
+                        {/* Choose For Me - Mobile Only (below title) */}
+                        <div className="md:hidden">
+                            <ChooseForMeButton
+                                items={plannedItems}
+                                templateSchema={category.template_schema}
+                            />
+                        </div>
                     </div>
                 </div>
-                <div className="flex gap-2">
+
+                {/* Right: Desktop Actions */}
+                <div className="hidden md:flex gap-2">
                     <ChooseForMeButton
                         items={plannedItems}
                         templateSchema={category.template_schema}
@@ -111,10 +123,39 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
                 </div>
             </div>
 
+            {/* Item List */}
             <ItemList
                 items={items || []}
                 templateSchema={category.template_schema}
             />
+
+            {/* Floating Action Button (Mobile Only) */}
+            <div className="md:hidden">
+                <Drawer>
+                    <DrawerTrigger asChild>
+                        <Button
+                            size="lg"
+                            className="fixed bottom-20 right-6 z-50 h-14 w-14 rounded-full shadow-lg"
+                        >
+                            <Plus className="h-6 w-6" />
+                        </Button>
+                    </DrawerTrigger>
+                    <DrawerContent>
+                        <div className="mx-auto w-full max-w-sm">
+                            <DrawerHeader>
+                                <DrawerTitle>Insira um novo item</DrawerTitle>
+                                <DrawerDescription>
+                                    Preencha os detalhes do novo item.
+                                </DrawerDescription>
+                            </DrawerHeader>
+                            <ItemForm
+                                categoryId={category.id}
+                                templateSchema={category.template_schema}
+                            />
+                        </div>
+                    </DrawerContent>
+                </Drawer>
+            </div>
         </div>
     )
 }
