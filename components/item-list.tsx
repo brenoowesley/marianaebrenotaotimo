@@ -163,7 +163,7 @@ export function ItemList({ items, templateSchema }: ItemListProps) {
         const noteSnippet = hasNotes ? item.notes.slice(0, 100) + (item.notes.length > 100 ? '...' : '') : null
 
         return (
-            <Card className="mb-3 border-border/50 bg-card/50 shadow-sm hover:bg-accent/20 transition-all duration-200 group">
+            <Card className="mb-3 border-border/50 bg-card/50 shadow-sm hover:bg-accent/20 active:scale-[0.98] transition-all duration-200 group">
                 {item.item_photo_url && (
                     <div className="h-48 w-full overflow-hidden">
                         <img
@@ -280,7 +280,7 @@ export function ItemList({ items, templateSchema }: ItemListProps) {
                     <TabsTrigger value="planned">Planned ({plannedItems.length})</TabsTrigger>
                     <TabsTrigger value="realized">Realized ({realizedItems.length})</TabsTrigger>
                 </TabsList>
-                <TabsContent value="planned" className="mt-4">
+                <TabsContent value="planned" className="mt-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
                     {plannedItems.length === 0 && (
                         <div className="text-center text-muted-foreground py-8">
                             No planned items.
@@ -290,7 +290,7 @@ export function ItemList({ items, templateSchema }: ItemListProps) {
                         <ItemCard key={item.id} item={item} />
                     ))}
                 </TabsContent>
-                <TabsContent value="realized" className="mt-4">
+                <TabsContent value="realized" className="mt-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
                     {realizedItems.length === 0 && (
                         <div className="text-center text-muted-foreground py-8">
                             No realized items yet.
