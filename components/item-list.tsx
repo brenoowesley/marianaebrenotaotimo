@@ -13,7 +13,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { CheckCircle2, Circle, Calendar as CalendarIcon, Link as LinkIcon, Star, MoreVertical, Pencil, Trash2 } from 'lucide-react'
+import { CheckCircle2, Circle, Star, MoreVertical, Pencil, Trash2, ExternalLink } from 'lucide-react'
 import { format } from 'date-fns'
 import { useRouter } from 'next/navigation'
 import { ItemDetail } from '@/components/item-detail'
@@ -35,7 +35,9 @@ interface Item {
 interface TemplateField {
     id: string
     name: string
-    type: 'text' | 'checkbox' | 'date' | 'link' | 'rating'
+    type: 'text' | 'checkbox' | 'date' | 'link' | 'rating' | 'select'
+    icon?: string  // Custom emoji/icon
+    options?: string[]  // Options for select type
 }
 
 interface ItemListProps {
@@ -57,64 +59,138 @@ export function ItemList({ items, templateSchema }: ItemListProps) {
         setDetailOpen(true)
     }
 
-    const renderProperty = (field: TemplateField, value: any) => {
-        if (value === undefined || value === null || value === '') return null
+    // Get icon for a property field - custom icon or fallback to type-based
+    const getPropertyIcon = (field: TemplateField) => {
+        if (field.icon) return field.icon
 
+        // Fallback icons based on type
         switch (field.type) {
-            case 'checkbox':
-                return value ? <Badge variant="outline">{field.name}</Badge> : null
-            case 'date':
-                return (
-                    <div className="flex items-center text-sm text-muted-foreground">
-                        <CalendarIcon className="mr-1 h-3 w-3" />
-                        {format(new Date(value), 'MMM d')}
-                    </div>
-                )
-            case 'link':
-                return (
-                    <a href={value} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
-                        <LinkIcon className="h-4 w-4" />
-                    </a>
-                )
-            case 'rating':
-                return (
-                    <div className="flex items-center">
-                        <Star className="h-3 w-3 fill-yellow-400 text-yellow-400 mr-1" />
-                        <span className="text-sm">{value}</span>
-                    </div>
-                )
-            default:
-                return <span className="text-sm text-muted-foreground">{value}</span>
+            case 'date': return '📅'
+            case 'link': return '🔗'
+            case 'checkbox': return '☑️'
+            case 'rating': return '⭐'
+            case 'select': return '👤'
+            default: return '📝'
         }
     }
 
-    const ItemCard = ({ item }: { item: Item }) => (
-        <Card className="cursor-pointer hover:bg-accent/50 transition-colors mb-4 overflow-hidden group relative">
-            {item.item_photo_url && (
-                <div className="h-32 w-full overflow-hidden">
-                    <img
-                        src={item.item_photo_url}
-                        alt={item.title}
-                        className="w-full h-full object-cover"
-                    />
-                </div>
-            )}
-            <CardHeader className="pb-2" onClick={() => openDetail(item)}>
-                <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                        <CardTitle className="text-base">{item.title}</CardTitle>
+    const renderProperty = (field: TemplateField, value: any) => {
+        if (value === undefined || value === null || value === '') return null
+
+        const icon = getPropertyIcon(field)
+
+        switch (field.type) {
+            case 'checkbox':
+                return value ? (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <span className="flex h-6 w-6 items-center justify-center rounded-md border bg-background/50 text-xs">
+                            {icon}
+                        </span>
+                        <Badge variant="outline" className="text-xs font-normal">{field.name}</Badge>
+                    </div>
+                ) : null
+
+            case 'date':
+                return (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <span className="flex h-6 w-6 items-center justify-center rounded-md border bg-background/50 text-xs">
+                            {icon}
+                        </span>
+                        <span>{format(new Date(value), 'MMM d, yyyy')}</span>
+                    </div>
+                )
+
+            case 'link':
+                return (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <span className="flex h-6 w-6 items-center justify-center rounded-md border bg-background/50 text-xs">
+                            {icon}
+                        </span>
+                        <a
+                            href={value}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:underline hover:text-primary flex items-center gap-1"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <span>Link</span>
+                            <ExternalLink size={12} />
+                        </a>
+                    </div>
+                )
+
+            case 'rating':
+                return (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <span className="flex h-6 w-6 items-center justify-center rounded-md border bg-background/50 text-xs">
+                            {icon}
+                        </span>
+                        <div className="flex items-center gap-0.5">
+                            {[...Array(5)].map((_, i) => (
+                                <Star
+                                    key={i}
+                                    className={`h-3.5 w-3.5 ${i < value ? 'fill-yellow-500 text-yellow-500' : 'fill-muted text-muted'}`}
+                                />
+                            ))}
+                        </div>
+                    </div>
+                )
+
+            case 'select':
+                return (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <span className="flex h-6 w-6 items-center justify-center rounded-md border bg-background/50 text-xs">
+                            {icon}
+                        </span>
+                        <Badge variant="secondary" className="font-normal text-xs">
+                            {value}
+                        </Badge>
+                    </div>
+                )
+
+            default:
+                return (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <span className="flex h-6 w-6 items-center justify-center rounded-md border bg-background/50 text-xs">
+                            {icon}
+                        </span>
+                        <span className="font-medium text-foreground">{value}</span>
+                    </div>
+                )
+        }
+    }
+
+    const ItemCard = ({ item }: { item: Item }) => {
+        return (
+            <Card className="hover:bg-accent/50 transition-colors cursor-pointer border-border/40 shadow-sm mb-4 group">
+                {item.item_photo_url && (
+                    <div className="h-40 w-full overflow-hidden">
+                        <img
+                            src={item.item_photo_url}
+                            alt={item.title}
+                            className="w-full h-full object-cover"
+                        />
+                    </div>
+                )}
+
+                <CardHeader className="pb-2 flex flex-row items-start justify-between space-y-0 p-5">
+                    <div className="flex-1" onClick={() => openDetail(item)}>
+                        <CardTitle className="font-semibold text-lg leading-none tracking-tight">
+                            {item.title}
+                        </CardTitle>
                         {item.rating && item.status === 'Realized' && (
-                            <div className="mt-1">
+                            <div className="mt-2">
                                 <StarRating value={item.rating} readonly size="sm" />
                             </div>
                         )}
                     </div>
-                    <div className="flex items-center gap-2">
+
+                    <div className="flex items-center gap-1">
                         {item.status === 'Planned' && (
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-6 w-6"
+                                className="h-8 w-8"
                                 onClick={(e) => {
                                     e.stopPropagation()
                                     setCompletingItem(item)
@@ -124,52 +200,53 @@ export function ItemList({ items, templateSchema }: ItemListProps) {
                             </Button>
                         )}
                         {item.status === 'Realized' && (
-                            <CheckCircle2 className="h-4 w-4 text-green-500" />
+                            <CheckCircle2 className="h-5 w-5 text-green-500" />
                         )}
+
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                                >
+                                    <MoreVertical className="h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={(e) => {
+                                    e.stopPropagation()
+                                    setEditingItem(item)
+                                }}>
+                                    <Pencil className="mr-2 h-4 w-4" />
+                                    Edit Item
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                    className="text-destructive"
+                                    onClick={(e) => {
+                                        e.stopPropagation()
+                                        setDeletingItem(item)
+                                    }}
+                                >
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Delete Item
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </div>
-                </div>
-            </CardHeader>
-            <CardContent onClick={() => openDetail(item)}>
-                <div className="flex flex-wrap gap-2">
+                </CardHeader>
+
+                <CardContent className="grid gap-2.5 p-5 pt-0" onClick={() => openDetail(item)}>
                     {templateSchema.map((field) => (
                         <div key={field.id}>
                             {renderProperty(field, item.properties_value[field.id])}
                         </div>
                     ))}
-                </div>
-            </CardContent>
-
-            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 bg-background/80 backdrop-blur-sm">
-                            <MoreVertical className="h-4 w-4" />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={(e) => {
-                            e.stopPropagation()
-                            setEditingItem(item)
-                        }}>
-                            <Pencil className="mr-2 h-4 w-4" />
-                            Edit Item
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                            className="text-destructive"
-                            onClick={(e) => {
-                                e.stopPropagation()
-                                setDeletingItem(item)
-                            }}
-                        >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Delete Item
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            </div>
-        </Card>
-    )
+                </CardContent>
+            </Card>
+        )
+    }
 
     const plannedItems = items.filter((i) => i.status === 'Planned')
     const realizedItems = items.filter((i) => i.status === 'Realized')

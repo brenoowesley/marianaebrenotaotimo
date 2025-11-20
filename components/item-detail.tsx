@@ -15,7 +15,7 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog'
 import { StarRating } from '@/components/star-rating'
-import { Upload, X } from 'lucide-react'
+import { X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
 interface Item {
@@ -31,7 +31,9 @@ interface Item {
 interface TemplateField {
     id: string
     name: string
-    type: 'text' | 'checkbox' | 'date' | 'link' | 'rating'
+    type: 'text' | 'checkbox' | 'date' | 'link' | 'rating' | 'select'
+    icon?: string
+    options?: string[]
 }
 
 interface ItemDetailProps {

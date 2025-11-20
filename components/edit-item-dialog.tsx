@@ -15,9 +15,18 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { StarRating } from '@/components/star-rating'
 import { X } from 'lucide-react'
+
+interface TemplateField {
+    id: string
+    name: string
+    type: 'text' | 'checkbox' | 'date' | 'link' | 'rating' | 'select'
+    icon?: string
+    options?: string[]
+}
 
 interface EditItemDialogProps {
     item: {
@@ -29,7 +38,7 @@ interface EditItemDialogProps {
         item_photo_url: string | null
         rating: number | null
     }
-    templateSchema: any[]
+    templateSchema: TemplateField[]
     open: boolean
     onOpenChange: (open: boolean) => void
 }
@@ -181,9 +190,108 @@ export function EditItemDialog({ item, templateSchema, open, onOpenChange }: Edi
                         </Select>
                     </div>
 
+                    {/* Dynamic Property Fields */}
+                    {templateSchema && templateSchema.length > 0 && (
+                        <div className="border-t pt-4 mt-4">
+                            <Label className="text-sm font-semibold mb-3 block">Properties</Label>
+                            <div className="space-y-3">
+                                {templateSchema.map((field) => (
+                                    <div key={field.id} className="space-y-2">
+                                        <Label className="text-xs flex items-center gap-1">
+                                            {field.icon && <span>{field.icon}</span>}
+                                            <span>{field.name}</span>
+                                        </Label>
+
+                                        {field.type === 'text' && (
+                                            <Input
+                                                value={properties[field.id] || ''}
+                                                onChange={(e) => setProperties({
+                                                    ...properties,
+                                                    [field.id]: e.target.value
+                                                })}
+                                                placeholder={`Enter ${field.name}`}
+                                            />
+                                        )}
+
+                                        {field.type === 'checkbox' && (
+                                            <div className="flex items-center space-x-2">
+                                                <Checkbox
+                                                    id={`prop-${field.id}`}
+                                                    checked={!!properties[field.id]}
+                                                    onCheckedChange={(checked) => setProperties({
+                                                        ...properties,
+                                                        [field.id]: checked
+                                                    })}
+                                                />
+                                                <Label htmlFor={`prop-${field.id}`} className="text-sm font-normal">
+                                                    {field.name}
+                                                </Label>
+                                            </div>
+                                        )}
+
+                                        {field.type === 'date' && (
+                                            <Input
+                                                type="date"
+                                                value={properties[field.id] || ''}
+                                                onChange={(e) => setProperties({
+                                                    ...properties,
+                                                    [field.id]: e.target.value
+                                                })}
+                                            />
+                                        )}
+
+                                        {field.type === 'link' && (
+                                            <Input
+                                                type="url"
+                                                value={properties[field.id] || ''}
+                                                onChange={(e) => setProperties({
+                                                    ...properties,
+                                                    [field.id]: e.target.value
+                                                })}
+                                                placeholder="https://..."
+                                            />
+                                        )}
+
+                                        {field.type === 'rating' && (
+                                            <StarRating
+                                                value={properties[field.id] || 0}
+                                                onChange={(value) => setProperties({
+                                                    ...properties,
+                                                    [field.id]: value
+                                                })}
+                                                size="sm"
+                                            />
+                                        )}
+
+                                        {field.type === 'select' && field.options && (
+                                            <Select
+                                                value={properties[field.id] || ''}
+                                                onValueChange={(value) => setProperties({
+                                                    ...properties,
+                                                    [field.id]: value
+                                                })}
+                                            >
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder={`Select ${field.name}`} />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {field.options.map((option) => (
+                                                        <SelectItem key={option} value={option}>
+                                                            {option}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
                     {status === 'Realized' && (
                         <>
-                            <div className="space-y-2">
+                            <div className="space-y-2 border-t pt-4">
                                 <Label>Rating</Label>
                                 <StarRating
                                     value={rating}
@@ -204,7 +312,7 @@ export function EditItemDialog({ item, templateSchema, open, onOpenChange }: Edi
                         </>
                     )}
 
-                    <div className="space-y-2">
+                    <div className="space-y-2 border-t pt-4">
                         <Label htmlFor="edit-notes">Notes</Label>
                         <Textarea
                             id="edit-notes"

@@ -18,7 +18,9 @@ import { DrawerClose, DrawerFooter } from '@/components/ui/drawer'
 interface TemplateField {
     id: string
     name: string
-    type: 'text' | 'checkbox' | 'date' | 'link' | 'rating'
+    type: 'text' | 'checkbox' | 'date' | 'link' | 'rating' | 'select'
+    icon?: string
+    options?: string[]
 }
 
 interface ItemFormProps {
@@ -136,6 +138,24 @@ export function ItemForm({ categoryId, templateSchema, onSuccess }: ItemFormProp
                         </SelectContent>
                     </Select>
                 )
+            case 'select':
+                return field.options ? (
+                    <Select
+                        value={properties[field.id] || ''}
+                        onValueChange={(value) => handlePropertyChange(field.id, value)}
+                    >
+                        <SelectTrigger>
+                            <SelectValue placeholder={`Select ${field.name}`} />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {field.options.map((option) => (
+                                <SelectItem key={option} value={option}>
+                                    {option}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                ) : null
             default:
                 return null
         }

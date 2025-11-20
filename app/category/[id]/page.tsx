@@ -6,6 +6,7 @@ import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle, Dr
 import { ItemForm } from '@/components/item-form'
 import { ItemList } from '@/components/item-list'
 import { ChooseForMeButton } from '@/components/choose-for-me-button'
+import { CoverReposition } from '@/components/cover-reposition'
 import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
@@ -54,11 +55,11 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
     return (
         <div className="container mx-auto p-4 space-y-8">
             {category.cover_image_url && (
-                <div className="h-48 w-full overflow-hidden rounded-lg -mt-4 -mx-4 mb-6">
-                    <img
-                        src={category.cover_image_url}
-                        alt={category.title}
-                        className="w-full h-full object-cover"
+                <div className="-mt-4 -mx-4 mb-6">
+                    <CoverReposition
+                        categoryId={category.id}
+                        coverImageUrl={category.cover_image_url}
+                        initialPosition={category.cover_position || 50}
                     />
                 </div>
             )}

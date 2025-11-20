@@ -23,6 +23,7 @@ interface Category {
     title: string
     icon: string
     cover_image_url: string | null
+    cover_position: number | null
     template_schema: any[]
 }
 
@@ -100,6 +101,7 @@ export function CategoryList() {
                                             src={category.cover_image_url}
                                             alt={category.title}
                                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                                            style={{ objectPosition: `center ${category.cover_position || 50}%` }}
                                         />
                                     </div>
                                 )}
