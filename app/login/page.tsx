@@ -106,9 +106,6 @@ export default function LoginPage() {
                         <Button type="submit" className="w-full" disabled={loading}>
                             {loading ? 'Loading...' : 'Sign In'}
                         </Button>
-                        <Button type="button" variant="outline" className="w-full" onClick={handleSignUp} disabled={loading}>
-                            Sign Up
-                        </Button>
                     </CardFooter>
                 </form>
             </Card>
