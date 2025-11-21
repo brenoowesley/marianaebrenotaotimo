@@ -23,6 +23,7 @@ import { EditItemDialog } from '@/components/edit-item-dialog'
 import { DeleteItemDialog } from '@/components/delete-item-dialog'
 import { CompleteItemModal } from '@/components/complete-item-modal'
 import { StarRating } from '@/components/star-rating'
+import { PolaroidCard } from '@/components/polaroid-card'
 
 import {
     DndContext,
@@ -742,16 +743,16 @@ export function ItemList({ items, templateSchema, existingTags = {} }: ItemListP
                             No realized items yet.
                         </div>
                     )}
-                    <SortableContext
-                        items={realizedItems.map(i => i.id)}
-                        strategy={verticalListSortingStrategy}
-                    >
+                    {/* Polaroid Grid for Realized Items */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {realizedItems.map((item) => (
-                            <SortableItem key={item.id} id={item.id}>
-                                <ItemCard item={item} />
-                            </SortableItem>
+                            <PolaroidCard
+                                key={item.id}
+                                item={item}
+                                templateSchema={templateSchema}
+                            />
                         ))}
-                    </SortableContext>
+                    </div>
                 </TabsContent>
             </Tabs>
 

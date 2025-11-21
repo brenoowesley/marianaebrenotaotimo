@@ -1,12 +1,18 @@
 import './globals.css'
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { Inter, Caveat } from 'next/font/google'
 import { ThemeProvider } from '@/components/theme-provider'
 import { Header } from '@/components/header'
 import { BottomNav } from '@/components/bottom-nav'
 import { createClient } from '@/utils/supabase/server'
 
 const inter = Inter({ subsets: ['latin'] })
+const caveat = Caveat({
+    subsets: ['latin'],
+    variable: '--font-handwriting',
+    weight: ['400', '700']
+})
+
 
 export const metadata: Metadata = {
     title: 'Mariana e Breno tá ótimo',
@@ -32,7 +38,7 @@ export default async function RootLayout({
 
     return (
         <html lang="en" suppressHydrationWarning>
-            <body className={inter.className}>
+            <body className={`${inter.className} ${caveat.variable}`}>
                 <ThemeProvider
                     attribute="class"
                     defaultTheme="dark"
