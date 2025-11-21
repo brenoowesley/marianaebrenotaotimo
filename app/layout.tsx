@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     description: 'Lista do que fazer - Mariana e Breno',
     appleWebApp: {
         capable: true,
-        title: 'MB Tá Ótimo',
+        title: 'MB Tá Ótimo!',
         statusBarStyle: 'black-translucent',
     },
     formatDetection: {
