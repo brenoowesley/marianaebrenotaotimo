@@ -32,11 +32,24 @@ export function CategoryAnalytics({ items, templateSchema }: CategoryAnalyticsPr
     // Calculate total count
     const totalCount = realizedItems.length
 
-    // Calculate average rating
-    const itemsWithRating = realizedItems.filter(item => item.rating !== null && item.rating > 0)
-    const averageRating = itemsWithRating.length > 0
-        ? itemsWithRating.reduce((sum, item) => sum + (item.rating || 0), 0) / itemsWithRating.length
-        : 0
+    // Calculate average rating based on schema
+    const ratingField = templateSchema.find(field => field.type === 'rating')
+    let averageRating = 0
+    let ratedItemCount = 0
+
+    if (ratingField) {
+        realizedItems.forEach(item => {
+            const ratingValue = item.properties_value[ratingField.id]
+            if (typeof ratingValue === 'number' && ratingValue > 0) {
+                averageRating += ratingValue
+                ratedItemCount++
+            }
+        })
+
+        if (ratedItemCount > 0) {
+            averageRating = averageRating / ratedItemCount
+        }
+    }
 
     // Calculate select field distributions
     const selectFieldStats = templateSchema
@@ -132,7 +145,7 @@ export function CategoryAnalytics({ items, templateSchema }: CategoryAnalyticsPr
                 </Card>
 
                 {/* Average Rating */}
-                {itemsWithRating.length > 0 && (
+                {ratingField && ratedItemCount > 0 && (
                     <Card>
                         <CardHeader className="pb-3">
                             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -158,7 +171,7 @@ export function CategoryAnalytics({ items, templateSchema }: CategoryAnalyticsPr
                                 ))}
                             </div>
                             <p className="text-xs text-muted-foreground mt-1">
-                                Baseado em {itemsWithRating.length} {itemsWithRating.length === 1 ? 'avaliação' : 'avaliações'}
+                                Baseado em {ratedItemCount} {ratedItemCount === 1 ? 'avaliação' : 'avaliações'}
                             </p>
                         </CardContent>
                     </Card>
