@@ -361,7 +361,7 @@ export function ItemList({ items, templateSchema, existingTags = {} }: ItemListP
                         <span className="flex h-6 w-6 items-center justify-center rounded-md border bg-background/50 text-xs">
                             {icon}
                         </span>
-                        <Badge variant="secondary" className="font-normal text-xs">
+                        <Badge variant="secondary" className="font-normal text-[10px] px-1.5 h-5">
                             {value}
                         </Badge>
                     </div>
