@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { StarRating } from '@/components/star-rating'
-import { PolaroidCard } from '@/components/polaroid-card'
+import { ScrapbookCard } from '@/components/scrapbook-card'
 import { format, startOfMonth, endOfMonth, isSameMonth, addMonths, subMonths } from 'date-fns'
 import { Button } from '@/components/ui/button'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
@@ -69,7 +69,7 @@ export function CalendarViewComponent({ items }: CalendarViewComponentProps) {
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {itemsForMonth.map((item) => (
-                        <PolaroidCard
+                        <ScrapbookCard
                             key={item.id}
                             item={item}
                             templateSchema={item.categories?.template_schema}

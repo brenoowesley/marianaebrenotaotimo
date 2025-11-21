@@ -13,7 +13,7 @@ interface TemplateField {
     options?: string[]
 }
 
-interface PolaroidCardProps {
+interface ScrapbookCardProps {
     item: {
         id: string
         title: string
@@ -27,7 +27,7 @@ interface PolaroidCardProps {
     templateSchema?: TemplateField[]
 }
 
-export function PolaroidCard({ item, templateSchema }: PolaroidCardProps) {
+export function ScrapbookCard({ item, templateSchema }: ScrapbookCardProps) {
     // Extract date - prefer realized_at, fallback to date property, then created_at
     const dateField = templateSchema?.find(f => f.type === 'date')
     const dateValue = item.realized_at || (dateField ? item.properties_value[dateField.id] : null) || item.created_at
