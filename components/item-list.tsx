@@ -629,7 +629,11 @@ export function ItemList({ items, templateSchema, existingTags = {} }: ItemListP
                                                     return (
                                                         <CommandItem
                                                             key={option}
-                                                            onSelect={() => toggleFilter(field.id, option)}
+                                                            value={option}
+                                                            onSelect={(currentValue) => {
+                                                                // currentValue is lowercased by cmdk, so we use the original option
+                                                                toggleFilter(field.id, option)
+                                                            }}
                                                         >
                                                             <div
                                                                 className={cn(
@@ -656,6 +660,7 @@ export function ItemList({ items, templateSchema, existingTags = {} }: ItemListP
                                                                 return rest
                                                             })}
                                                             className="justify-center text-center"
+                                                            value="clear-filters"
                                                         >
                                                             Clear filters
                                                         </CommandItem>
