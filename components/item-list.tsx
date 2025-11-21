@@ -116,6 +116,118 @@ const SortableItem = ({ id, children }: SortableItemProps) => {
     )
 }
 
+interface FilterPopoverProps {
+    field: TemplateField
+    options: string[]
+    activeFilters: string[]
+    toggleFilter: (fieldId: string, value: string) => void
+    setFilters: React.Dispatch<React.SetStateAction<Record<string, string[]>>>
+}
+
+const FilterPopover = ({ field, options, activeFilters, toggleFilter, setFilters }: FilterPopoverProps) => {
+    const [open, setOpen] = useState(false)
+
+    return (
+        <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+                <Button
+                    variant="outline"
+                    size="sm"
+                    className={cn(
+                        "h-8 border-dashed",
+                        activeFilters.length > 0 && "bg-accent text-accent-foreground border-solid"
+                    )}
+                >
+                    <Filter className="mr-2 h-3 w-3" />
+                    {field.name}
+                    {activeFilters.length > 0 && (
+                        <>
+                            <span className="mx-2 h-4 w-[1px] bg-border" />
+                            <Badge
+                                variant="secondary"
+                                className="rounded-sm px-1 font-normal lg:hidden"
+                            >
+                                {activeFilters.length}
+                            </Badge>
+                            <div className="hidden lg:flex space-x-1">
+                                {activeFilters.length > 2 ? (
+                                    <Badge variant="secondary" className="rounded-sm px-1 font-normal">
+                                        {activeFilters.length} selected
+                                    </Badge>
+                                ) : (
+                                    activeFilters.map(option => (
+                                        <Badge
+                                            key={option}
+                                            variant="secondary"
+                                            className="rounded-sm px-1 font-normal"
+                                        >
+                                            {option}
+                                        </Badge>
+                                    ))
+                                )}
+                            </div>
+                        </>
+                    )}
+                </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[200px] p-0" align="start">
+                <Command>
+                    <CommandInput placeholder={`Filter ${field.name}...`} />
+                    <CommandList>
+                        <CommandEmpty>No results found.</CommandEmpty>
+                        <CommandGroup>
+                            {options.map(option => {
+                                const isSelected = activeFilters.includes(option)
+                                return (
+                                    <CommandItem
+                                        key={option}
+                                        value={option}
+                                        onSelect={() => {
+                                            toggleFilter(field.id, option)
+                                        }}
+                                    >
+                                        <div
+                                            className={cn(
+                                                "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
+                                                isSelected
+                                                    ? "bg-primary text-primary-foreground"
+                                                    : "opacity-50 [&_svg]:invisible"
+                                            )}
+                                        >
+                                            <Check className={cn("h-4 w-4")} />
+                                        </div>
+                                        <span>{option}</span>
+                                    </CommandItem>
+                                )
+                            })}
+                        </CommandGroup>
+                        {activeFilters.length > 0 && (
+                            <>
+                                <CommandSeparator />
+                                <CommandGroup>
+                                    <CommandItem
+                                        onSelect={() => {
+                                            setFilters(prev => {
+                                                const { [field.id]: _, ...rest } = prev
+                                                return rest
+                                            })
+                                            setOpen(false)
+                                        }}
+                                        className="justify-center text-center"
+                                        value="clear-filters"
+                                    >
+                                        Clear filters
+                                    </CommandItem>
+                                </CommandGroup>
+                            </>
+                        )}
+                    </CommandList>
+                </Command>
+            </PopoverContent>
+        </Popover>
+    )
+}
+
 export function ItemList({ items, templateSchema, existingTags = {} }: ItemListProps) {
     const [selectedItem, setSelectedItem] = useState<Item | null>(null)
     const [detailOpen, setDetailOpen] = useState(false)
@@ -576,101 +688,14 @@ export function ItemList({ items, templateSchema, existingTags = {} }: ItemListP
                         const activeFilters = filters[field.id] || []
 
                         return (
-                            <Popover key={field.id}>
-                                <PopoverTrigger asChild>
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className={cn(
-                                            "h-8 border-dashed",
-                                            activeFilters.length > 0 && "bg-accent text-accent-foreground border-solid"
-                                        )}
-                                    >
-                                        <Filter className="mr-2 h-3 w-3" />
-                                        {field.name}
-                                        {activeFilters.length > 0 && (
-                                            <>
-                                                <span className="mx-2 h-4 w-[1px] bg-border" />
-                                                <Badge
-                                                    variant="secondary"
-                                                    className="rounded-sm px-1 font-normal lg:hidden"
-                                                >
-                                                    {activeFilters.length}
-                                                </Badge>
-                                                <div className="hidden lg:flex space-x-1">
-                                                    {activeFilters.length > 2 ? (
-                                                        <Badge variant="secondary" className="rounded-sm px-1 font-normal">
-                                                            {activeFilters.length} selected
-                                                        </Badge>
-                                                    ) : (
-                                                        activeFilters.map(option => (
-                                                            <Badge
-                                                                key={option}
-                                                                variant="secondary"
-                                                                className="rounded-sm px-1 font-normal"
-                                                            >
-                                                                {option}
-                                                            </Badge>
-                                                        ))
-                                                    )}
-                                                </div>
-                                            </>
-                                        )}
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-[200px] p-0" align="start">
-                                    <Command>
-                                        <CommandInput placeholder={`Filter ${field.name}...`} />
-                                        <CommandList>
-                                            <CommandEmpty>No results found.</CommandEmpty>
-                                            <CommandGroup>
-                                                {options.map(option => {
-                                                    const isSelected = activeFilters.includes(option)
-                                                    return (
-                                                        <CommandItem
-                                                            key={option}
-                                                            value={option}
-                                                            onSelect={(currentValue) => {
-                                                                // currentValue is lowercased by cmdk, so we use the original option
-                                                                toggleFilter(field.id, option)
-                                                            }}
-                                                        >
-                                                            <div
-                                                                className={cn(
-                                                                    "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
-                                                                    isSelected
-                                                                        ? "bg-primary text-primary-foreground"
-                                                                        : "opacity-50 [&_svg]:invisible"
-                                                                )}
-                                                            >
-                                                                <Check className={cn("h-4 w-4")} />
-                                                            </div>
-                                                            <span>{option}</span>
-                                                        </CommandItem>
-                                                    )
-                                                })}
-                                            </CommandGroup>
-                                            {activeFilters.length > 0 && (
-                                                <>
-                                                    <CommandSeparator />
-                                                    <CommandGroup>
-                                                        <CommandItem
-                                                            onSelect={() => setFilters(prev => {
-                                                                const { [field.id]: _, ...rest } = prev
-                                                                return rest
-                                                            })}
-                                                            className="justify-center text-center"
-                                                            value="clear-filters"
-                                                        >
-                                                            Clear filters
-                                                        </CommandItem>
-                                                    </CommandGroup>
-                                                </>
-                                            )}
-                                        </CommandList>
-                                    </Command>
-                                </PopoverContent>
-                            </Popover>
+                            <FilterPopover
+                                key={field.id}
+                                field={field}
+                                options={options}
+                                activeFilters={activeFilters}
+                                toggleFilter={toggleFilter}
+                                setFilters={setFilters}
+                            />
                         )
                     })}
 
