@@ -21,29 +21,6 @@ import { useRouter } from 'next/navigation'
 import { ItemDetail } from '@/components/item-detail'
 import { EditItemDialog } from '@/components/edit-item-dialog'
 import { DeleteItemDialog } from '@/components/delete-item-dialog'
-import { CompleteItemModal } from '@/components/complete-item-modal'
-import { StarRating } from '@/components/star-rating'
-import { PolaroidCard } from '@/components/polaroid-card'
-
-import {
-    DndContext,
-    DragStartEvent,
-    DragEndEvent,
-    closestCenter,
-    KeyboardSensor,
-    PointerSensor,
-    TouchSensor,
-    useSensor,
-    useSensors,
-} from '@dnd-kit/core'
-import {
-    SortableContext,
-    arrayMove,
-    useSortable,
-    verticalListSortingStrategy,
-    sortableKeyboardCoordinates,
-} from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
 
 import { Filter, X } from 'lucide-react'
 import {
@@ -743,16 +720,17 @@ export function ItemList({ items, templateSchema, existingTags = {} }: ItemListP
                             No realized items yet.
                         </div>
                     )}
-                    {/* Polaroid Grid for Realized Items */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {/* Standard List for Realized Items */}
+                    <SortableContext
+                        items={realizedItems.map((item) => item.id)}
+                        strategy={verticalListSortingStrategy}
+                    >
                         {realizedItems.map((item) => (
-                            <PolaroidCard
-                                key={item.id}
-                                item={item}
-                                templateSchema={templateSchema}
-                            />
+                            <SortableItem key={item.id} id={item.id}>
+                                <ItemCard item={item} />
+                            </SortableItem>
                         ))}
-                    </div>
+                    </SortableContext>
                 </TabsContent>
             </Tabs>
 
