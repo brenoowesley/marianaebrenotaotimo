@@ -15,7 +15,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { CheckCircle2, Circle, Star, MoreVertical, Pencil, Trash2, ExternalLink, CalendarPlus } from 'lucide-react'
+import { CheckCircle2, Circle, Star, MoreVertical, Pencil, Trash2, ExternalLink, CalendarPlus, GripVertical } from 'lucide-react'
 import { format } from 'date-fns'
 import { useRouter } from 'next/navigation'
 import { ItemDetail } from '@/components/item-detail'
@@ -110,8 +110,19 @@ const SortableItem = ({ id, children }: SortableItemProps) => {
     }
 
     return (
-        <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-            {children}
+        <div ref={setNodeRef} style={style} {...attributes} className="relative group">
+            {/* Drag Handle - Only this area triggers drag */}
+            <div
+                {...listeners}
+                className="absolute left-0 top-0 bottom-0 w-8 flex items-center justify-center cursor-grab active:cursor-grabbing opacity-0 hover:opacity-100 transition-opacity z-10 bg-gradient-to-r from-accent/50 to-transparent"
+                title="Drag to reorder"
+            >
+                <GripVertical className="h-4 w-4 text-muted-foreground" />
+            </div>
+            {/* Content - Clicks work normally here */}
+            <div className="pl-2">
+                {children}
+            </div>
         </div>
     )
 }
