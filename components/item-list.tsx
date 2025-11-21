@@ -1,5 +1,3 @@
-
-
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -679,12 +677,7 @@ export function ItemList({ items, templateSchema, existingTags = {} }: ItemListP
     }
 
     return (
-        <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragStart={handleDragStart}
-            onDragEnd={handleDragEnd}
-        >
+        <>
             {/* Filter Bar */}
             <div className="mb-4 flex flex-wrap items-center gap-2">
                 {templateSchema
@@ -723,85 +716,92 @@ export function ItemList({ items, templateSchema, existingTags = {} }: ItemListP
                 )}
             </div>
 
-            <Tabs defaultValue="planned" className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="planned">Planned ({plannedItems.length})</TabsTrigger>
-                    <TabsTrigger value="realized">Realized ({realizedItems.length})</TabsTrigger>
-                </TabsList>
+            <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragStart={handleDragStart}
+                onDragEnd={handleDragEnd}
+            >
+                <Tabs defaultValue="planned" className="w-full">
+                    <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="planned">Planned ({plannedItems.length})</TabsTrigger>
+                        <TabsTrigger value="realized">Realized ({realizedItems.length})</TabsTrigger>
+                    </TabsList>
 
-                <TabsContent value="planned" className="mt-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                    {plannedItems.length === 0 && (
-                        <div className="text-center text-muted-foreground py-8">
-                            No planned items.
-                        </div>
-                    )}
-                    <SortableContext
-                        items={plannedItems.map(i => i.id)}
-                        strategy={verticalListSortingStrategy}
-                    >
-                        {plannedItems.map((item) => (
-                            <SortableItem key={item.id} id={item.id}>
-                                <ItemCard item={item} />
-                            </SortableItem>
-                        ))}
-                    </SortableContext>
-                </TabsContent>
+                    <TabsContent value="planned" className="mt-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                        {plannedItems.length === 0 && (
+                            <div className="text-center text-muted-foreground py-8">
+                                No planned items.
+                            </div>
+                        )}
+                        <SortableContext
+                            items={plannedItems.map(i => i.id)}
+                            strategy={verticalListSortingStrategy}
+                        >
+                            {plannedItems.map((item) => (
+                                <SortableItem key={item.id} id={item.id}>
+                                    <ItemCard item={item} />
+                                </SortableItem>
+                            ))}
+                        </SortableContext>
+                    </TabsContent>
 
-                <TabsContent value="realized" className="mt-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                    {realizedItems.length === 0 && (
-                        <div className="text-center text-muted-foreground py-8">
-                            No realized items yet.
-                        </div>
-                    )}
-                    {/* Standard List for Realized Items */}
-                    <SortableContext
-                        items={realizedItems.map((item) => item.id)}
-                        strategy={verticalListSortingStrategy}
-                    >
-                        {realizedItems.map((item) => (
-                            <SortableItem key={item.id} id={item.id}>
-                                <ItemCard item={item} />
-                            </SortableItem>
-                        ))}
-                    </SortableContext>
-                </TabsContent>
-            </Tabs>
+                    <TabsContent value="realized" className="mt-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                        {realizedItems.length === 0 && (
+                            <div className="text-center text-muted-foreground py-8">
+                                No realized items yet.
+                            </div>
+                        )}
+                        {/* Standard List for Realized Items */}
+                        <SortableContext
+                            items={realizedItems.map((item) => item.id)}
+                            strategy={verticalListSortingStrategy}
+                        >
+                            {realizedItems.map((item) => (
+                                <SortableItem key={item.id} id={item.id}>
+                                    <ItemCard item={item} />
+                                </SortableItem>
+                            ))}
+                        </SortableContext>
+                    </TabsContent>
+                </Tabs>
 
-            {selectedItem && (
-                <ItemDetail
-                    item={selectedItem}
-                    open={detailOpen}
-                    onOpenChange={setDetailOpen}
-                    templateSchema={templateSchema}
-                />
-            )}
+                {selectedItem && (
+                    <ItemDetail
+                        item={selectedItem}
+                        open={detailOpen}
+                        onOpenChange={setDetailOpen}
+                        templateSchema={templateSchema}
+                    />
+                )}
 
-            {editingItem && (
-                <EditItemDialog
-                    item={editingItem}
-                    templateSchema={templateSchema}
-                    existingTags={existingTags}
-                    open={!!editingItem}
-                    onOpenChange={(open) => !open && setEditingItem(null)}
-                />
-            )}
+                {editingItem && (
+                    <EditItemDialog
+                        item={editingItem}
+                        templateSchema={templateSchema}
+                        existingTags={existingTags}
+                        open={!!editingItem}
+                        onOpenChange={(open) => !open && setEditingItem(null)}
+                    />
+                )}
 
-            {deletingItem && (
-                <DeleteItemDialog
-                    item={deletingItem}
-                    open={!!deletingItem}
-                    onOpenChange={(open) => !open && setDeletingItem(null)}
-                />
-            )}
+                {deletingItem && (
+                    <DeleteItemDialog
+                        item={deletingItem}
+                        open={!!deletingItem}
+                        onOpenChange={(open) => !open && setDeletingItem(null)}
+                    />
+                )}
 
-            {completingItem && (
-                <CompleteItemModal
-                    item={completingItem}
-                    templateSchema={templateSchema}
-                    open={!!completingItem}
-                    onOpenChange={(open) => !open && setCompletingItem(null)}
-                />
-            )}
-        </DndContext>
+                {completingItem && (
+                    <CompleteItemModal
+                        item={completingItem}
+                        templateSchema={templateSchema}
+                        open={!!completingItem}
+                        onOpenChange={(open) => !open && setCompletingItem(null)}
+                    />
+                )}
+            </DndContext>
+        </>
     )
 }

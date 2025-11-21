@@ -108,7 +108,7 @@ export function CompleteItemModal({ item, templateSchema, open, onOpenChange }: 
                     rating: rating > 0 ? rating : null,
                     item_photo_url: photoUrl,
                     notes: notes || null,
-                    realized_at: format(realizedDate, 'yyyy-MM-dd'),
+                    realized_at: `${format(realizedDate, 'yyyy-MM-dd')} 12:00:00`,
                 })
                 .eq('id', item.id)
 
