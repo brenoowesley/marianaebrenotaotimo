@@ -5,7 +5,6 @@ import { ThemeProvider } from '@/components/theme-provider'
 import { Header } from '@/components/header'
 import { BottomNav } from '@/components/bottom-nav'
 import { createClient } from '@/utils/supabase/server'
-import Script from 'next/script'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -46,26 +45,6 @@ export default async function RootLayout({
                     </main>
                     {isAuthenticated && <BottomNav />}
                 </ThemeProvider>
-                <Script
-                    id="sw-register"
-                    strategy="afterInteractive"
-                    dangerouslySetInnerHTML={{
-                        __html: `
-                            if ('serviceWorker' in navigator) {
-                                window.addEventListener('load', function() {
-                                    navigator.serviceWorker.register('/sw.js').then(
-                                        function(registration) {
-                                            console.log('SW registered: ', registration);
-                                        },
-                                        function(err) {
-                                            console.log('SW registration failed: ', err);
-                                        }
-                                    );
-                                });
-                            }
-                        `,
-                    }}
-                />
             </body>
         </html>
     )
