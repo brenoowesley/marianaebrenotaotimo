@@ -16,7 +16,11 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { StarRating } from '@/components/star-rating'
-import { X } from 'lucide-react'
+import { Calendar } from '@/components/ui/calendar'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { X, CalendarIcon } from 'lucide-react'
+import { format } from 'date-fns'
+import { cn } from '@/lib/utils'
 
 interface TemplateField {
     id: string
@@ -42,6 +46,7 @@ export function CompleteItemModal({ item, templateSchema, open, onOpenChange }: 
     const [photoFile, setPhotoFile] = useState<File | null>(null)
     const [photoPreview, setPhotoPreview] = useState<string>('')
     const [notes, setNotes] = useState('')
+    const [realizedDate, setRealizedDate] = useState<Date>(new Date())
     const [loading, setLoading] = useState(false)
     const router = useRouter()
     const supabase = createClient()
@@ -103,6 +108,7 @@ export function CompleteItemModal({ item, templateSchema, open, onOpenChange }: 
                     rating: rating > 0 ? rating : null,
                     item_photo_url: photoUrl,
                     notes: notes || null,
+                    realized_at: format(realizedDate, 'yyyy-MM-dd'),
                 })
                 .eq('id', item.id)
 
@@ -116,6 +122,7 @@ export function CompleteItemModal({ item, templateSchema, open, onOpenChange }: 
             setPhotoFile(null)
             setPhotoPreview('')
             setNotes('')
+            setRealizedDate(new Date())
         } catch (error) {
             console.error('Error completing item:', error)
             alert('Failed to complete item')
@@ -150,6 +157,33 @@ export function CompleteItemModal({ item, templateSchema, open, onOpenChange }: 
                                 )
                             })}
                         </div>
+                    </div>
+
+                    {/* Realized Date */}
+                    <div className="space-y-2">
+                        <Label>Realized Date</Label>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    className={cn(
+                                        'w-full justify-start text-left font-normal',
+                                        !realizedDate && 'text-muted-foreground'
+                                    )}
+                                >
+                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    {realizedDate ? format(realizedDate, 'PPP') : <span>Pick a date</span>}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                                <Calendar
+                                    mode="single"
+                                    selected={realizedDate}
+                                    onSelect={(date) => date && setRealizedDate(date)}
+                                    initialFocus
+                                />
+                            </PopoverContent>
+                        </Popover>
                     </div>
 
                     {/* Rating */}
