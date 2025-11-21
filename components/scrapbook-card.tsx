@@ -60,7 +60,7 @@ export function ScrapbookCard({ item, templateSchema }: ScrapbookCardProps) {
                 <div className="flex justify-between items-center text-sm">
                     {/* Left: Date - DARKER for readability */}
                     {dateValue && (
-                        <span className="flex items-center gap-1 text-gray-700 dark:text-gray-300">
+                        <span className="flex items-center gap-1 text-gray-700">
                             <Calendar className="h-3 w-3" />
                             {format(new Date(dateValue), 'MMM dd, yyyy')}
                         </span>
@@ -70,7 +70,7 @@ export function ScrapbookCard({ item, templateSchema }: ScrapbookCardProps) {
                     {item.rating && item.rating > 0 && (
                         <div className="flex items-center gap-1">
                             <StarRating value={item.rating} readonly size="sm" />
-                            <span className="text-xs text-gray-700 dark:text-gray-300 font-medium">
+                            <span className="text-xs text-gray-700 font-medium">
                                 {item.rating.toFixed(1)}
                             </span>
                         </div>
@@ -83,7 +83,7 @@ export function ScrapbookCard({ item, templateSchema }: ScrapbookCardProps) {
                 {/* Handwritten Notes - NEAR-BLACK for maximum readability */}
                 {item.notes && item.notes.trim().length > 0 && (
                     <div className="pt-1">
-                        <p className="font-handwriting text-center text-lg leading-relaxed text-gray-900 dark:text-gray-100">
+                        <p className="font-handwriting text-center text-lg leading-relaxed text-gray-900">
                             {item.notes}
                         </p>
                     </div>
