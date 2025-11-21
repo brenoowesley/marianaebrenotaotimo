@@ -47,9 +47,26 @@ interface EditItemDialogProps {
 }
 
 export function EditItemDialog({ item, templateSchema, existingTags = {}, open, onOpenChange }: EditItemDialogProps) {
+    const normalizeProperties = (props: Record<string, any>, schema: TemplateField[]) => {
+        const normalized = { ...props }
+        schema.forEach(field => {
+            if (field.type === 'tags') {
+                const value = normalized[field.id]
+                if (!Array.isArray(value)) {
+                    if (typeof value === 'string' && value.trim() !== '') {
+                        normalized[field.id] = [value]
+                    } else {
+                        normalized[field.id] = []
+                    }
+                }
+            }
+        })
+        return normalized
+    }
+
     const [title, setTitle] = useState(item.title)
     const [status, setStatus] = useState(item.status)
-    const [properties, setProperties] = useState(item.properties_value)
+    const [properties, setProperties] = useState(normalizeProperties(item.properties_value, templateSchema))
     const [notes, setNotes] = useState(item.notes || '')
     const [rating, setRating] = useState(item.rating || 0)
     const [photoFile, setPhotoFile] = useState<File | null>(null)
