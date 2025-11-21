@@ -52,7 +52,7 @@ export function ScrapbookCard({ item, templateSchema }: ScrapbookCardProps) {
             {/* Caption Section */}
             <div className="space-y-3">
                 {/* Title */}
-                <h3 className="font-semibold text-base leading-tight line-clamp-2 text-foreground">
+                <h3 className="font-semibold text-base leading-tight line-clamp-2 text-gray-900">
                     {item.title}
                 </h3>
 
