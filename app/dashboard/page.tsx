@@ -30,6 +30,40 @@ export default async function DashboardPage() {
         console.error('Error fetching categories:', categoriesError)
     }
 
+    // Fetch realized items with ratings for statistics
+    const { data: items, error: itemsError } = await supabase
+        .from('items')
+        .select('category_id, rating')
+        .eq('status', 'Realized')
+        .not('rating', 'is', null)
+
+    if (itemsError) {
+        console.error('Error fetching items for stats:', itemsError)
+    }
+
+    // Calculate average ratings per category
+    const categoryStats: Record<string, number> = {}
+
+    if (items) {
+        const ratingsByCategory: Record<string, number[]> = {}
+
+        items.forEach(item => {
+            if (item.category_id && item.rating) {
+                if (!ratingsByCategory[item.category_id]) {
+                    ratingsByCategory[item.category_id] = []
+                }
+                ratingsByCategory[item.category_id].push(item.rating)
+            }
+        })
+
+        Object.keys(ratingsByCategory).forEach(categoryId => {
+            const ratings = ratingsByCategory[categoryId]
+            const sum = ratings.reduce((a, b) => a + b, 0)
+            const avg = sum / ratings.length
+            categoryStats[categoryId] = parseFloat(avg.toFixed(1))
+        })
+    }
+
     return (
         <div className="container mx-auto p-4 space-y-8">
             <div className="flex items-center justify-between">
@@ -62,7 +96,7 @@ export default async function DashboardPage() {
 
             <div className="space-y-4">
                 <h2 className="text-xl font-semibold tracking-tight">Categorias</h2>
-                <CategoryList categories={categories || []} />
+                <CategoryList categories={categories || []} stats={categoryStats} />
             </div>
         </div>
     )

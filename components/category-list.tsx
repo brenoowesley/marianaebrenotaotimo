@@ -11,7 +11,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { MoreVertical, Pencil, Trash2 } from 'lucide-react'
+import { MoreVertical, Pencil, Trash2, Star } from 'lucide-react'
 import Link from 'next/link'
 import { EditCategoryDialog } from '@/components/edit-category-dialog'
 import { DeleteCategoryDialog } from '@/components/delete-category-dialog'
@@ -25,7 +25,7 @@ interface Category {
     template_schema: any[]
 }
 
-export function CategoryList({ categories = [] }: { categories: Category[] }) {
+export function CategoryList({ categories = [], stats }: { categories: Category[], stats?: Record<string, number> }) {
     const [editingCategory, setEditingCategory] = useState<Category | null>(null)
     const [deletingCategory, setDeletingCategory] = useState<Category | null>(null)
 
@@ -58,9 +58,17 @@ export function CategoryList({ categories = [] }: { categories: Category[] }) {
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-3 flex-1">
                                             <span className="text-3xl leading-none">{category.icon}</span>
-                                            <CardTitle className="text-base font-semibold leading-tight">
-                                                {category.title}
-                                            </CardTitle>
+                                            <div className="space-y-1">
+                                                <CardTitle className="text-base font-semibold leading-tight">
+                                                    {category.title}
+                                                </CardTitle>
+                                                {stats && stats[category.id] !== undefined && (
+                                                    <div className="flex items-center gap-1 text-xs font-medium text-muted-foreground">
+                                                        <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                                                        <span>{stats[category.id].toFixed(1)}</span>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 </CardHeader>
