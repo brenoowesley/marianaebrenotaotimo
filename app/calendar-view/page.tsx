@@ -31,7 +31,7 @@ export default async function CalendarViewPage() {
       )
     `)
         .eq('status', 'Realized')
-        .order('created_at', { ascending: false })
+        .order('realized_at', { ascending: false })
 
     if (error) {
         console.error('Error fetching items:', error)
