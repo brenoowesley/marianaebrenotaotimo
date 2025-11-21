@@ -21,6 +21,28 @@ import { useRouter } from 'next/navigation'
 import { ItemDetail } from '@/components/item-detail'
 import { EditItemDialog } from '@/components/edit-item-dialog'
 import { DeleteItemDialog } from '@/components/delete-item-dialog'
+import { CompleteItemModal } from '@/components/complete-item-modal'
+import { StarRating } from '@/components/star-rating'
+
+import {
+    DndContext,
+    DragStartEvent,
+    DragEndEvent,
+    closestCenter,
+    KeyboardSensor,
+    PointerSensor,
+    TouchSensor,
+    useSensor,
+    useSensors,
+} from '@dnd-kit/core'
+import {
+    SortableContext,
+    arrayMove,
+    useSortable,
+    verticalListSortingStrategy,
+    sortableKeyboardCoordinates,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 
 import { Filter, X } from 'lucide-react'
 import {
