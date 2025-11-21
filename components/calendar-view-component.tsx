@@ -1,11 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { StarRating } from '@/components/star-rating'
+import { PolaroidCard } from '@/components/polaroid-card'
 import { format, startOfMonth, endOfMonth, isSameMonth, addMonths, subMonths } from 'date-fns'
+import { Button } from '@/components/ui/button'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 interface CalendarItem {
@@ -68,48 +67,14 @@ export function CalendarViewComponent({ items }: CalendarViewComponentProps) {
                     <p className="text-sm mt-2">Items you complete will appear here as a visual scrapbook</p>
                 </div>
             ) : (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {itemsForMonth.map((item) => {
-                        const itemDate = getItemDate(item)
-                        return (
-                            <Card key={item.id} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer group">
-                                {/* Photo or Category Icon */}
-                                {item.item_photo_url ? (
-                                    <div className="h-48 w-full overflow-hidden bg-muted">
-                                        <img
-                                            src={item.item_photo_url}
-                                            alt={item.title}
-                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
-                                        />
-                                    </div>
-                                ) : (
-                                    <div className="h-48 w-full bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center">
-                                        <span className="text-6xl opacity-80">{item.categories.icon}</span>
-                                    </div>
-                                )}
-
-                                {/* Info */}
-                                <CardContent className="p-3 space-y-2">
-                                    <h3 className="font-semibold truncate" title={item.title}>
-                                        {item.title}
-                                    </h3>
-
-                                    <div className="flex items-center justify-between text-sm">
-                                        <Badge variant="secondary" className="text-xs">
-                                            {item.categories.icon} {item.categories.title}
-                                        </Badge>
-                                        {item.rating && (
-                                            <StarRating value={item.rating} readonly size="sm" />
-                                        )}
-                                    </div>
-
-                                    <p className="text-xs text-muted-foreground">
-                                        {format(itemDate, 'MMM d, yyyy')}
-                                    </p>
-                                </CardContent>
-                            </Card>
-                        )
-                    })}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {itemsForMonth.map((item) => (
+                        <PolaroidCard
+                            key={item.id}
+                            item={item}
+                            templateSchema={item.categories?.template_schema}
+                        />
+                    ))}
                 </div>
             )}
 
