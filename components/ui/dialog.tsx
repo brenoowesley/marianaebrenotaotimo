@@ -41,9 +41,9 @@ const DialogContent = React.forwardRef<
             <DialogPrimitive.Content
                 ref={ref}
                 className={cn(
-                    // Mobile: Full screen, scrollable, dynamic height
-                    "fixed inset-0 z-50 grid h-[100dvh] w-full max-w-none gap-4 overflow-y-auto bg-background p-6 shadow-lg duration-200 border-0",
-                    "pb-[env(safe-area-inset-bottom)]", // Safe area padding
+                    // Mobile: Full screen, scrollable, adaptive height
+                    "fixed inset-0 z-50 grid min-h-screen w-full max-w-none gap-4 overflow-y-auto bg-background p-6 shadow-lg duration-200 border-0",
+                    "pb-[max(env(safe-area-inset-bottom),1.5rem)]", // Safe area padding with fallback
                     "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
 
                     // Desktop: Centered card

@@ -113,4 +113,16 @@
     ::-webkit-scrollbar-thumb:hover {
         @apply bg-muted-foreground/30;
     }
-}.font-handwriting { font-family: var(--font-handwriting); }
+
+    /* Prevent iOS Safari auto-zoom on input focus */
+    /* iOS doesn't zoom if font-size >= 16px */
+    input,
+    textarea,
+    select {
+        font-size: max(16px, 1em);
+    }
+}
+
+.font-handwriting {
+    font-family: var(--font-handwriting);
+}

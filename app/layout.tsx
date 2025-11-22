@@ -34,8 +34,9 @@ export const metadata: Metadata = {
 export const viewport = {
     width: 'device-width',
     initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
+    maximumScale: 5,      // Allow zoom up to 5x for accessibility
+    userScalable: true,    // Enable pinch-zoom
+    // Note: Input auto-zoom is prevented via CSS (font-size: 16px on inputs)
 }
 
 
