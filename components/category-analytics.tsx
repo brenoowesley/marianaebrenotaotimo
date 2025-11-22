@@ -33,16 +33,17 @@ export function CategoryAnalytics({ items, templateSchema }: CategoryAnalyticsPr
     const totalCount = realizedItems.length
 
     // Calculate average rating based on schema
-    const ratingField = templateSchema.find(field => field.type === 'rating')
+    // Check if any items have ratings (from item.rating, not properties)
+    const hasRatings = realizedItems.some(item => typeof item.rating === 'number' && item.rating > 0)
     let averageRating = 0
     let ratedItemCount = 0
 
-    console.log('🔍 Analytics Debug - Rating Field:', ratingField)
+    console.log('🔍 Analytics Debug - Has Ratings:', hasRatings)
     console.log('🔍 Analytics Debug - Realized Items:', realizedItems)
 
-    if (ratingField) {
+    if (hasRatings) {
         realizedItems.forEach(item => {
-            const ratingValue = item.properties_value[ratingField.id]
+            const ratingValue = item.rating
             console.log('🔍 Item:', item.title, 'Rating Value:', ratingValue, 'Type:', typeof ratingValue)
             if (typeof ratingValue === 'number' && ratingValue > 0) {
                 averageRating += ratingValue
@@ -72,12 +73,9 @@ export function CategoryAnalytics({ items, templateSchema }: CategoryAnalyticsPr
                 if (value && optionData.hasOwnProperty(value)) {
                     optionData[value].count++
 
-                    // Add rating if available
-                    if (ratingField) {
-                        const rating = item.properties_value[ratingField.id]
-                        if (typeof rating === 'number' && rating > 0) {
-                            optionData[value].ratingSum += rating
-                        }
+                    // Add rating from item.rating (database column)
+                    if (hasRatings && typeof item.rating === 'number' && item.rating > 0) {
+                        optionData[value].ratingSum += item.rating
                     }
                 }
             })
@@ -114,12 +112,9 @@ export function CategoryAnalytics({ items, templateSchema }: CategoryAnalyticsPr
                         }
                         tagData[tag].count++
 
-                        // Add rating if available
-                        if (ratingField) {
-                            const rating = item.properties_value[ratingField.id]
-                            if (typeof rating === 'number' && rating > 0) {
-                                tagData[tag].ratingSum += rating
-                            }
+                        // Add rating from item.rating (database column)
+                        if (hasRatings && typeof item.rating === 'number' && item.rating > 0) {
+                            tagData[tag].ratingSum += item.rating
                         }
                     })
                 }
@@ -170,7 +165,7 @@ export function CategoryAnalytics({ items, templateSchema }: CategoryAnalyticsPr
                 </Card>
 
                 {/* Average Rating */}
-                {ratingField && ratedItemCount > 0 && (
+                {hasRatings && ratedItemCount > 0 && (
                     <Card>
                         <CardHeader className="pb-3">
                             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -222,7 +217,7 @@ export function CategoryAnalytics({ items, templateSchema }: CategoryAnalyticsPr
                                         <div className="flex items-center justify-between text-sm">
                                             <span className="font-medium">{item.option}</span>
                                             <span className="text-muted-foreground flex items-center gap-2">
-                                                {ratingField && item.averageRating > 0 && (
+                                                {hasRatings && item.averageRating > 0 && (
                                                     <>
                                                         <span className="flex items-center gap-1">
                                                             ⭐ <strong className="text-foreground">{item.averageRating.toFixed(1)}</strong> avg
@@ -262,7 +257,7 @@ export function CategoryAnalytics({ items, templateSchema }: CategoryAnalyticsPr
                                             <div className="flex items-center justify-between text-sm">
                                                 <span className="font-medium">{item.tag}</span>
                                                 <span className="text-muted-foreground flex items-center gap-2">
-                                                    {ratingField && item.averageRating > 0 && (
+                                                    {hasRatings && item.averageRating > 0 && (
                                                         <>
                                                             <span className="flex items-center gap-1">
                                                                 ⭐ <strong className="text-foreground">{item.averageRating.toFixed(1)}</strong> avg
