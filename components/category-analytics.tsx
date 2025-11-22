@@ -51,31 +51,40 @@ export function CategoryAnalytics({ items, templateSchema }: CategoryAnalyticsPr
         }
     }
 
-    // Calculate select field distributions
+    // Calculate select field distributions (with ratings if available)
     const selectFieldStats = templateSchema
         .filter(field => field.type === 'select' && field.options && field.options.length > 0)
         .map(field => {
-            const optionCounts: Record<string, number> = {}
+            const optionData: Record<string, { count: number, ratingSum: number }> = {}
 
-            // Initialize counts
+            // Initialize data
             field.options?.forEach(option => {
-                optionCounts[option] = 0
+                optionData[option] = { count: 0, ratingSum: 0 }
             })
 
-            // Count occurrences
+            // Count occurrences and aggregate ratings
             realizedItems.forEach(item => {
                 const value = item.properties_value[field.id]
-                if (value && optionCounts.hasOwnProperty(value)) {
-                    optionCounts[value]++
+                if (value && optionData.hasOwnProperty(value)) {
+                    optionData[value].count++
+
+                    // Add rating if available
+                    if (ratingField) {
+                        const rating = item.properties_value[ratingField.id]
+                        if (typeof rating === 'number' && rating > 0) {
+                            optionData[value].ratingSum += rating
+                        }
+                    }
                 }
             })
 
-            // Calculate percentages
-            const total = Object.values(optionCounts).reduce((sum, count) => sum + count, 0)
-            const distribution = Object.entries(optionCounts).map(([option, count]) => ({
+            // Calculate percentages and averages
+            const total = Object.values(optionData).reduce((sum, data) => sum + data.count, 0)
+            const distribution = Object.entries(optionData).map(([option, data]) => ({
                 option,
-                count,
-                percentage: total > 0 ? Math.round((count / total) * 100) : 0
+                count: data.count,
+                percentage: total > 0 ? Math.round((data.count / total) * 100) : 0,
+                averageRating: data.count > 0 ? data.ratingSum / data.count : 0
             }))
 
             return {
@@ -85,27 +94,39 @@ export function CategoryAnalytics({ items, templateSchema }: CategoryAnalyticsPr
             }
         })
 
-    // Calculate tag field frequencies
+    // Calculate tag field frequencies (with ratings if available)
     const tagFieldStats = templateSchema
         .filter(field => field.type === 'tags')
         .map(field => {
-            const tagCounts: Record<string, number> = {}
+            const tagData: Record<string, { count: number, ratingSum: number }> = {}
 
-            // Count occurrences
+            // Count occurrences and aggregate ratings
             realizedItems.forEach(item => {
                 const tags = item.properties_value[field.id]
                 if (Array.isArray(tags)) {
                     tags.forEach((tag: string) => {
-                        tagCounts[tag] = (tagCounts[tag] || 0) + 1
+                        if (!tagData[tag]) {
+                            tagData[tag] = { count: 0, ratingSum: 0 }
+                        }
+                        tagData[tag].count++
+
+                        // Add rating if available
+                        if (ratingField) {
+                            const rating = item.properties_value[ratingField.id]
+                            if (typeof rating === 'number' && rating > 0) {
+                                tagData[tag].ratingSum += rating
+                            }
+                        }
                     })
                 }
             })
 
-            // Calculate percentages (relative to total realized items)
-            const distribution = Object.entries(tagCounts).map(([tag, count]) => ({
+            // Calculate percentages and averages (relative to total realized items)
+            const distribution = Object.entries(tagData).map(([tag, data]) => ({
                 tag,
-                count,
-                percentage: totalCount > 0 ? Math.round((count / totalCount) * 100) : 0
+                count: data.count,
+                percentage: totalCount > 0 ? Math.round((data.count / totalCount) * 100) : 0,
+                averageRating: data.count > 0 ? data.ratingSum / data.count : 0
             }))
 
             return {
@@ -196,8 +217,16 @@ export function CategoryAnalytics({ items, templateSchema }: CategoryAnalyticsPr
                                     <div key={item.option} className="space-y-2">
                                         <div className="flex items-center justify-between text-sm">
                                             <span className="font-medium">{item.option}</span>
-                                            <span className="text-muted-foreground">
-                                                {item.count} ({item.percentage}%)
+                                            <span className="text-muted-foreground flex items-center gap-2">
+                                                {ratingField && item.averageRating > 0 && (
+                                                    <>
+                                                        <span className="flex items-center gap-1">
+                                                            ⭐ <strong className="text-foreground">{item.averageRating.toFixed(1)}</strong> avg
+                                                        </span>
+                                                        <span>•</span>
+                                                    </>
+                                                )}
+                                                <span>{item.count} {item.count === 1 ? 'item' : 'itens'}</span>
                                             </span>
                                         </div>
                                         <Progress value={item.percentage} className="h-2" />
@@ -228,8 +257,16 @@ export function CategoryAnalytics({ items, templateSchema }: CategoryAnalyticsPr
                                         <div key={item.tag} className="space-y-2">
                                             <div className="flex items-center justify-between text-sm">
                                                 <span className="font-medium">{item.tag}</span>
-                                                <span className="text-muted-foreground">
-                                                    {item.count} ({item.percentage}%)
+                                                <span className="text-muted-foreground flex items-center gap-2">
+                                                    {ratingField && item.averageRating > 0 && (
+                                                        <>
+                                                            <span className="flex items-center gap-1">
+                                                                ⭐ <strong className="text-foreground">{item.averageRating.toFixed(1)}</strong> avg
+                                                            </span>
+                                                            <span>•</span>
+                                                        </>
+                                                    )}
+                                                    <span>{item.count} {item.count === 1 ? 'item' : 'itens'}</span>
                                                 </span>
                                             </div>
                                             <Progress value={item.percentage} className="h-2" />
