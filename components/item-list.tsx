@@ -369,14 +369,10 @@ export function ItemList({ items, templateSchema, existingTags = {} }: ItemListP
         if (!newDate) return
 
         try {
-            // Force noon to avoid timezone issues
-            const noonDate = new Date(newDate)
-            noonDate.setHours(12, 0, 0, 0)
-
             const { error } = await supabase
                 .from('items')
                 .update({
-                    realized_at: format(noonDate, 'yyyy-MM-dd HH:mm:ss')
+                    realized_at: format(newDate, 'yyyy-MM-dd')
                 })
                 .eq('id', itemId)
 
