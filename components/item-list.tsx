@@ -195,6 +195,10 @@ const FilterPopover = ({ field, options, activeFilters, toggleFilter, setFilters
                                             console.log('CommandItem onSelect fired. Option:', option, 'CurrentValue:', currentValue)
                                             toggleFilter(field.id, option)
                                         }}
+                                        onClick={() => {
+                                            console.log('CommandItem onClick fired. Option:', option)
+                                            toggleFilter(field.id, option)
+                                        }}
                                     >
                                         <div
                                             className={cn(
