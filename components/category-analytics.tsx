@@ -37,9 +37,13 @@ export function CategoryAnalytics({ items, templateSchema }: CategoryAnalyticsPr
     let averageRating = 0
     let ratedItemCount = 0
 
+    console.log('🔍 Analytics Debug - Rating Field:', ratingField)
+    console.log('🔍 Analytics Debug - Realized Items:', realizedItems)
+
     if (ratingField) {
         realizedItems.forEach(item => {
             const ratingValue = item.properties_value[ratingField.id]
+            console.log('🔍 Item:', item.title, 'Rating Value:', ratingValue, 'Type:', typeof ratingValue)
             if (typeof ratingValue === 'number' && ratingValue > 0) {
                 averageRating += ratingValue
                 ratedItemCount++
