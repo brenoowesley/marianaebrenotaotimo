@@ -46,7 +46,11 @@ export function CompleteItemModal({ item, templateSchema, open, onOpenChange }: 
     const [photoFile, setPhotoFile] = useState<File | null>(null)
     const [photoPreview, setPhotoPreview] = useState<string>('')
     const [notes, setNotes] = useState('')
-    const [realizedDate, setRealizedDate] = useState<Date>(new Date())
+    const [realizedDate, setRealizedDate] = useState<Date>(() => {
+        const now = new Date()
+        now.setHours(12, 0, 0, 0) // Force noon to prevent timezone shifts
+        return now
+    })
     const [loading, setLoading] = useState(false)
     const router = useRouter()
     const supabase = createClient()

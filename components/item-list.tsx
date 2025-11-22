@@ -13,7 +13,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { CheckCircle2, Circle, Star, MoreVertical, Pencil, Trash2, ExternalLink, CalendarPlus, GripVertical } from 'lucide-react'
+import { CheckCircle2, Circle, Star, MoreVertical, Pencil, Trash2, ExternalLink, CalendarPlus, GripVertical, Calendar as CalendarIcon } from 'lucide-react'
 import { format } from 'date-fns'
 import { useRouter } from 'next/navigation'
 import { ItemDetail } from '@/components/item-detail'
@@ -48,6 +48,7 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover"
+import { Calendar } from '@/components/ui/calendar'
 import {
     Command,
     CommandEmpty,
@@ -69,6 +70,7 @@ interface Item {
     item_photo_url: string | null
     rating: number | null
     order_index: number | null
+    realized_at?: string | null
 }
 
 interface TemplateField {
@@ -363,6 +365,30 @@ export function ItemList({ items, templateSchema, existingTags = {} }: ItemListP
         }
     }
 
+    const handleDateEdit = async (itemId: string, newDate: Date | undefined) => {
+        if (!newDate) return
+
+        try {
+            // Force noon to avoid timezone issues
+            const noonDate = new Date(newDate)
+            noonDate.setHours(12, 0, 0, 0)
+
+            const { error } = await supabase
+                .from('items')
+                .update({
+                    realized_at: format(noonDate, 'yyyy-MM-dd HH:mm:ss')
+                })
+                .eq('id', itemId)
+
+            if (error) throw error
+
+            router.refresh()
+        } catch (error) {
+            console.error('Error updating realized date:', error)
+            alert('Failed to update date')
+        }
+    }
+
     const handleDragStart = (event: DragStartEvent) => {
         setActiveId(event.active.id as string)
     }
@@ -554,6 +580,34 @@ export function ItemList({ items, templateSchema, existingTags = {} }: ItemListP
                         {item.rating && item.status === 'Realized' && (
                             <div className="mt-1.5">
                                 <StarRating value={item.rating} readonly size="sm" />
+                            </div>
+                        )}
+                        {item.status === 'Realized' && item.realized_at && (
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
+                                <CalendarIcon className="h-3.5 w-3.5" />
+                                <span>{format(new Date(item.realized_at), 'MMM dd, yyyy')}</span>
+
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-6 w-6 ml-1 hover:bg-accent"
+                                            onClick={(e) => e.stopPropagation()}
+                                            title="Edit date"
+                                        >
+                                            <Pencil className="h-3 w-3" />
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0" align="start" onClick={(e) => e.stopPropagation()}>
+                                        <Calendar
+                                            mode="single"
+                                            selected={new Date(item.realized_at)}
+                                            onSelect={(date) => handleDateEdit(item.id, date)}
+                                            initialFocus
+                                        />
+                                    </PopoverContent>
+                                </Popover>
                             </div>
                         )}
                     </div>
