@@ -36,6 +36,7 @@ export const viewport = {
     initialScale: 1,
     maximumScale: 5,      // Allow zoom up to 5x for accessibility
     userScalable: true,    // Enable pinch-zoom
+    themeColor: '#000000', // Match manifest theme-color for iOS status bar
     // Note: Input auto-zoom is prevented via CSS (font-size: 16px on inputs)
 }
 
