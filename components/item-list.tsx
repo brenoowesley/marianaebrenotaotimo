@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -255,9 +255,7 @@ export function ItemList({ items, templateSchema, existingTags = {} }: ItemListP
     // Filter state: fieldId -> selected values array
     const [filters, setFilters] = useState<Record<string, string[]>>({})
 
-    // Local state for optimistic updates
-    const [plannedItems, setPlannedItems] = useState<Item[]>([])
-    const [realizedItems, setRealizedItems] = useState<Item[]>([])
+    // Note: plannedItems and realizedItems are now derived via useMemo below
 
     const supabase = createClient()
     const router = useRouter()
@@ -279,36 +277,28 @@ export function ItemList({ items, templateSchema, existingTags = {} }: ItemListP
         })
     )
 
-    // Initialize local state when items prop changes or filters change
-    useEffect(() => {
+    // Derive filtered and sorted items using useMemo (performance optimization)
+    const { plannedItems, realizedItems } = useMemo(() => {
         let filteredItems = items
 
         // Apply filters
         if (Object.keys(filters).length > 0) {
-            console.log('Filtering items with filters:', filters)
             filteredItems = items.filter(item => {
                 return Object.entries(filters).every(([fieldId, selectedValues]) => {
                     if (selectedValues.length === 0) return true
 
                     const itemValue = item.properties_value[fieldId]
-                    console.log(`Checking item ${item.title} for field ${fieldId}. Value:`, itemValue, 'Selected:', selectedValues)
 
                     // Handle array (tags)
                     if (Array.isArray(itemValue)) {
-                        const match = selectedValues.some(val => itemValue.includes(val))
-                        console.log('  Array match:', match)
-                        return match
+                        return selectedValues.some(val => itemValue.includes(val))
                     }
 
                     // Handle single value (select)
-                    const match = selectedValues.includes(itemValue)
-                    console.log('  Single match:', match)
-                    return match
+                    return selectedValues.includes(itemValue)
                 })
             })
         }
-
-        console.log('Filtered items count:', filteredItems.length)
 
         const planned = filteredItems
             .filter((i) => i.status === 'Planned')
@@ -318,12 +308,10 @@ export function ItemList({ items, templateSchema, existingTags = {} }: ItemListP
             .filter((i) => i.status === 'Realized')
             .sort((a, b) => (a.order_index || 0) - (b.order_index || 0))
 
-        setPlannedItems(planned)
-        setRealizedItems(realized)
+        return { plannedItems: planned, realizedItems: realized }
     }, [items, filters])
 
     const toggleFilter = (fieldId: string, value: string) => {
-        console.log('Toggling filter:', fieldId, value)
         setFilters(prev => {
             const current = prev[fieldId] || []
             const updated = current.includes(value)
@@ -349,28 +337,19 @@ export function ItemList({ items, templateSchema, existingTags = {} }: ItemListP
     const toggleItemStatus = async (item: Item) => {
         const newStatus = item.status === 'Planned' ? 'Realized' : 'Planned'
 
-        // Optimistic update - update LOCAL state immediately
-        if (item.status === 'Planned') {
-            // Moving from Planned to Realized
-            setPlannedItems(prev => prev.filter(i => i.id !== item.id))
-            setRealizedItems(prev => [...prev, { ...item, status: newStatus }])
-        } else {
-            // Moving from Realized to Planned
-            setRealizedItems(prev => prev.filter(i => i.id !== item.id))
-            setPlannedItems(prev => [...prev, { ...item, status: newStatus }])
-        }
-
-        // Single API call
+        // Update database
         const { error } = await supabase
             .from('items')
             .update({ status: newStatus })
             .eq('id', item.id)
 
-        // Only refresh if there's an error (to revert to server state)
+        // Refresh to get updated data
+        // Note: Since plannedItems/realizedItems are now derived via useMemo,
+        // we refresh from the server to get the updated state
         if (error) {
             console.error('Error updating status:', error)
-            router.refresh()  // Revert to server state
         }
+        router.refresh()
     }
 
     const handleDateEdit = async (itemId: string, newDate: Date | undefined) => {
@@ -405,16 +384,12 @@ export function ItemList({ items, templateSchema, existingTags = {} }: ItemListP
 
         const isPlanned = plannedItems.some(i => i.id === active.id)
         const currentList = isPlanned ? plannedItems : realizedItems
-        const setItems = isPlanned ? setPlannedItems : setRealizedItems
 
         const oldIndex = currentList.findIndex((item) => item.id === active.id)
         const newIndex = currentList.findIndex((item) => item.id === over.id)
 
         if (oldIndex !== -1 && newIndex !== -1) {
             const newItems = arrayMove(currentList, oldIndex, newIndex)
-
-            // Optimistic update
-            setItems(newItems)
 
             // Calculate new order_index
             let newOrderIndex: number
