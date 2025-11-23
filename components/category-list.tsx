@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { MoreVertical, Pencil, Trash2, Star } from 'lucide-react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { EditCategoryDialog } from '@/components/edit-category-dialog'
 import { DeleteCategoryDialog } from '@/components/delete-category-dialog'
 
@@ -45,12 +46,16 @@ export function CategoryList({ categories = [], stats }: { categories: Category[
                         <Link href={`/category/${category.id}`}>
                             <Card className="cursor-pointer hover:shadow-md transition-all duration-200 border-border/50 h-full overflow-hidden">
                                 {category.cover_image_url && (
-                                    <div className="h-32 w-full overflow-hidden">
-                                        <img
+                                    <div className="h-32 w-full overflow-hidden relative">
+                                        <Image
                                             src={category.cover_image_url}
                                             alt={category.title}
-                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                                            fill
+                                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                            className="object-cover transition-transform duration-200"
                                             style={{ objectPosition: `center ${category.cover_position || 50}%` }}
+                                            loading="lazy"
+                                            quality={85}
                                         />
                                     </div>
                                 )}
