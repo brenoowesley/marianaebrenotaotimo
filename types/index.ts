@@ -13,7 +13,7 @@ export interface ItemPropertiesValue {
 export interface TemplateField {
     id: string
     name: string
-    type: 'text' | 'checkbox' | 'date' | 'link' | 'rating' | 'select' | 'tags'
+    type: 'text' | 'checkbox' | 'date' | 'link' | 'rating' | 'select' | 'tags' | 'address'
     icon?: string
     options?: string[]
 }
