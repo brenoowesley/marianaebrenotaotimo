@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -16,10 +16,19 @@ const icon = L.icon({
 
 interface LocationPickerMapProps {
     onLocationSelect: (lat: number, lng: number, address: string) => void
+    initialPosition?: { lat: number; lng: number } | null
 }
 
-function LocationMarker({ onLocationSelect }: { onLocationSelect: (lat: number, lng: number, address: string) => void }) {
-    const [position, setPosition] = useState<L.LatLng | null>(null)
+function LocationMarker({
+    onLocationSelect,
+    initialPosition
+}: {
+    onLocationSelect: (lat: number, lng: number, address: string) => void
+    initialPosition?: { lat: number; lng: number } | null
+}) {
+    const [position, setPosition] = useState<L.LatLng | null>(
+        initialPosition ? new L.LatLng(initialPosition.lat, initialPosition.lng) : null
+    )
 
     const map = useMapEvents({
         click(e) {
@@ -40,23 +49,32 @@ function LocationMarker({ onLocationSelect }: { onLocationSelect: (lat: number, 
         },
     })
 
+    // Fly to initial position if it changes
+    useEffect(() => {
+        if (initialPosition) {
+            const newPos = new L.LatLng(initialPosition.lat, initialPosition.lng)
+            setPosition(newPos)
+            map.flyTo(newPos, 16) // Zoom in closer when searching
+        }
+    }, [initialPosition, map])
+
     return position === null ? null : (
         <Marker position={position} icon={icon} />
     )
 }
 
-export default function LocationPickerMap({ onLocationSelect }: LocationPickerMapProps) {
+export default function LocationPickerMap({ onLocationSelect, initialPosition }: LocationPickerMapProps) {
     return (
         <MapContainer
-            center={[-5.12, -35.64]} // Default to São Miguel do Gostoso
-            zoom={13}
+            center={initialPosition ? [initialPosition.lat, initialPosition.lng] : [-5.12, -35.64]}
+            zoom={initialPosition ? 16 : 13}
             style={{ height: '100%', width: '100%' }}
         >
             <TileLayer
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             />
-            <LocationMarker onLocationSelect={onLocationSelect} />
+            <LocationMarker onLocationSelect={onLocationSelect} initialPosition={initialPosition} />
         </MapContainer>
     )
 }

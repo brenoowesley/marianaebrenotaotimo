@@ -7,7 +7,10 @@ import { Search, MapPin } from 'lucide-react'
 import dynamic from 'next/dynamic'
 
 // Dynamically import the map component to avoid SSR issues
-const LocationPickerMap = dynamic<{ onLocationSelect: (lat: number, lng: number, address: string) => void }>(
+const LocationPickerMap = dynamic<{
+    onLocationSelect: (lat: number, lng: number, address: string) => void
+    initialPosition?: { lat: number; lng: number } | null
+}>(
     () => import('./location-picker-map'),
     {
         ssr: false,
@@ -28,6 +31,7 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
     const [searchQuery, setSearchQuery] = useState('')
     const [isMapOpen, setIsMapOpen] = useState(false)
     const [displayValue, setDisplayValue] = useState(value || '')
+    const [mapPosition, setMapPosition] = useState<{ lat: number; lng: number } | null>(null)
 
     useEffect(() => {
         setDisplayValue(value || '')
@@ -43,9 +47,17 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
             const data = await response.json()
 
             if (data && data.length > 0) {
-                // In a real implementation we would pass this to the map to fly to
-                // For now, the user can manually navigate or we can implement a map ref later
-                console.log('Found:', data[0])
+                const firstResult = data[0]
+                const lat = parseFloat(firstResult.lat)
+                const lng = parseFloat(firstResult.lon)
+
+                // Update map position to fly to
+                setMapPosition({ lat, lng })
+
+                // Also update the form value directly with the found address
+                const address = firstResult.display_name
+                setDisplayValue(address)
+                onChange(address, lat, lng)
             }
         } catch (error) {
             console.error('Search failed:', error)
@@ -77,6 +89,7 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
             {isMapOpen && (
                 <div className="h-[300px] w-full rounded-md border overflow-hidden relative z-0">
                     <LocationPickerMap
+                        initialPosition={mapPosition}
                         onLocationSelect={(lat, lng, address) => {
                             setDisplayValue(address)
                             onChange(address, lat, lng)
