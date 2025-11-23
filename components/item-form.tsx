@@ -16,11 +16,12 @@ import { cn } from '@/lib/utils'
 import { DrawerClose, DrawerFooter } from '@/components/ui/drawer'
 
 import { MultiSelect } from '@/components/ui/multi-select'
+import { LocationPicker } from '@/components/location-picker'
 
 interface TemplateField {
     id: string
     name: string
-    type: 'text' | 'checkbox' | 'date' | 'link' | 'rating' | 'select' | 'tags'
+    type: 'text' | 'checkbox' | 'date' | 'link' | 'rating' | 'select' | 'tags' | 'address'
     icon?: string
     options?: string[]
 }
@@ -166,6 +167,17 @@ export function ItemForm({ categoryId, templateSchema, existingTags = {}, onSucc
                         selected={properties[field.id] || []}
                         onChange={(selected) => handlePropertyChange(field.id, selected)}
                         placeholder={`Select ${field.name}...`}
+                    />
+                )
+            case 'address':
+                return (
+                    <LocationPicker
+                        value={properties[field.id] || ''}
+                        onChange={(value, lat, lng) => {
+                            handlePropertyChange(field.id, value)
+                            // We could also store lat/lng separately if needed, 
+                            // but for now we'll rely on the address string or update the item later
+                        }}
                     />
                 )
             default:

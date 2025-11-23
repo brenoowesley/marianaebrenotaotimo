@@ -7,7 +7,7 @@ import { Search, MapPin } from 'lucide-react'
 import dynamic from 'next/dynamic'
 
 // Dynamically import the map component to avoid SSR issues
-const LocationPickerMap = dynamic(
+const LocationPickerMap = dynamic<{ onLocationSelect: (lat: number, lng: number, address: string) => void }>(
     () => import('./location-picker-map'),
     {
         ssr: false,

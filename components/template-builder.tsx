@@ -129,6 +129,7 @@ export function TemplateBuilder({ fields, onChange }: TemplateBuilderProps) {
                                         <SelectItem value="rating">Rating</SelectItem>
                                         <SelectItem value="select">Select List</SelectItem>
                                         <SelectItem value="tags">Tags / Multi-Select</SelectItem>
+                                        <SelectItem value="address">Address</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
