@@ -77,7 +77,7 @@ export async function GET(request: Request) {
             const schema = category?.template_schema as any[] || []
 
             // Find a field that looks like an address
-            const addressField = schema.find(field =>
+            const addressField = schema.find((field: any) =>
                 field.name.toLowerCase().includes('endereço') ||
                 field.name.toLowerCase().includes('address') ||
                 field.name.toLowerCase().includes('local')
@@ -111,27 +111,75 @@ export async function GET(request: Request) {
                             const poiAddr = `${item.title}, ${city}, Rio Grande do Norte, Brazil`
                             coords = await getCoordinates(poiAddr)
                             strategy = 'POI Search'
+                            await new Promise(resolve => setTimeout(resolve, 1000))
+                        }
+
+                        // Strategy 4: Aggressive Street Only (Remove Zip, State, Country, Neighborhoods, Numbers)
+                        if (!coords) {
+                            const cleanAddress = addressValue
+                                .replace(/\d{5}-?\d{3}/g, '') // Remove Zip (59585-000)
+                                .replace(/(Rio Grande do Norte|RN|Brasil|Brazil)/gi, '') // Remove State/Country
+                                .replace(/(Centro|Bairro|Vila)/gi, '') // Remove common neighborhoods
+                                .replace(/\d+/g, '') // Remove numbers
+                                .replace(/[-–,]/g, ' ') // Remove separators
+                                .replace(/\s+/g, ' ') // Collapse spaces
+                                .trim()
+
+                            // Force City Context
+                            let searchAddr = cleanAddress
+                            if (!cleanAddress.toLowerCase().includes('gostoso')) {
+                                searchAddr = `${cleanAddress}, São Miguel do Gostoso`
+                            }
+
+                            coords = await getCoordinates(searchAddr)
+                            strategy = 'Aggressive Clean'
+                            await new Promise(resolve => setTimeout(resolve, 1000))
+
+                            if (!coords) {
+                                logs.push(`Failed to geocode (All attempts): ${item.title} -> ${addressValue} (Tried: Exact, Context, POI, Aggressive: "${searchAddr}")`)
+                            }
+                        }
+
+                        if (coords) {
+                            updates.push(
+                                supabase
+                                    .from('items')
+                                    .update({
+                                        address: addressValue,
+                                        latitude: coords.lat,
+                                        longitude: coords.lng,
+                                        geocoded_at: new Date().toISOString()
+                                    })
+                                    .eq('id', item.id)
+                            )
+                            logs.push(`Synced (${strategy}): ${item.title} -> ${addressValue} (${coords.lat}, ${coords.lng})`)
                         }
                     } else {
-                        const fieldNames = schema.map(f => f.name).join(', ')
-                        logs.push(`Skipped: ${item.title} (No address field found. Fields: ${fieldNames})`)
+                        logs.push(`Skipped: ${item.title} (Already has coordinates)`)
                     }
+                } else {
+                    logs.push(`Skipped: ${item.title} (Empty address value)`)
                 }
-
-                // Execute all updates
-                if (updates.length > 0) {
-                    await Promise.all(updates)
-                }
-
-                return NextResponse.json({
-                    success: true,
-                    mode: isAdmin ? 'ADMIN' : 'USER',
-                    total_found: items.length,
-                    processed: updates.length,
-                    logs
-                })
-
-            } catch (error: any) {
-                return NextResponse.json({ error: error.message }, { status: 500 })
+            } else {
+                const fieldNames = schema.map((f: any) => f.name).join(', ')
+                logs.push(`Skipped: ${item.title} (No address field found. Fields: ${fieldNames})`)
             }
         }
+
+        // Execute all updates
+        if (updates.length > 0) {
+            await Promise.all(updates)
+        }
+
+        return NextResponse.json({
+            success: true,
+            mode: isAdmin ? 'ADMIN' : 'USER',
+            total_found: items.length,
+            processed: updates.length,
+            logs
+        })
+
+    } catch (error: any) {
+        return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+}
