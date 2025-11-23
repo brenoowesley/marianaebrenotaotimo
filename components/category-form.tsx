@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
+import { MAX_FILE_SIZE, ALLOWED_IMAGE_TYPES } from '@/lib/constants'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -26,14 +27,13 @@ export function CategoryForm({ onSuccess }: CategoryFormProps) {
 
     const validateFile = (file: File): boolean => {
         // Check file size (10MB)
-        if (file.size > 10 * 1024 * 1024) {
+        if (file.size > MAX_FILE_SIZE) {
             alert('File size must be less than 10MB')
             return false
         }
 
         // Check file type
-        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
-        if (!allowedTypes.includes(file.type)) {
+        if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
             alert('Only image files are allowed (JPEG, PNG, WebP, GIF)')
             return false
         }
