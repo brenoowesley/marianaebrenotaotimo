@@ -349,19 +349,27 @@ export function ItemList({ items, templateSchema, existingTags = {} }: ItemListP
     const toggleItemStatus = async (item: Item) => {
         const newStatus = item.status === 'Planned' ? 'Realized' : 'Planned'
 
-        // Optimistic update
-        router.refresh()
+        // Optimistic update - update LOCAL state immediately
+        if (item.status === 'Planned') {
+            // Moving from Planned to Realized
+            setPlannedItems(prev => prev.filter(i => i.id !== item.id))
+            setRealizedItems(prev => [...prev, { ...item, status: newStatus }])
+        } else {
+            // Moving from Realized to Planned
+            setRealizedItems(prev => prev.filter(i => i.id !== item.id))
+            setPlannedItems(prev => [...prev, { ...item, status: newStatus }])
+        }
 
+        // Single API call
         const { error } = await supabase
             .from('items')
             .update({ status: newStatus })
             .eq('id', item.id)
 
+        // Only refresh if there's an error (to revert to server state)
         if (error) {
             console.error('Error updating status:', error)
-            router.refresh()
-        } else {
-            router.refresh()
+            router.refresh()  // Revert to server state
         }
     }
 
