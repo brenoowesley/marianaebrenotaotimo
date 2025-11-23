@@ -1,41 +1,27 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
-import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet'
-import L from 'leaflet'
-import 'leaflet/dist/leaflet.css'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Search, MapPin } from 'lucide-react'
+import dynamic from 'next/dynamic'
 
-// Fix Leaflet icon issue
-const icon = L.icon({
-    iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
-    iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
-    shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-})
+// Dynamically import the map component to avoid SSR issues
+const LocationPickerMap = dynamic(
+    () => import('./location-picker-map'),
+    {
+        ssr: false,
+        loading: () => (
+            <div className="w-full h-[300px] bg-muted flex items-center justify-center rounded-md border">
+                <p className="text-muted-foreground">Carregando mapa...</p>
+            </div>
+        )
+    }
+)
 
 interface LocationPickerProps {
     value?: string
     onChange: (value: string, lat?: number, lng?: number) => void
-}
-
-function LocationMarker({ onLocationSelect }: { onLocationSelect: (lat: number, lng: number) => void }) {
-    const [position, setPosition] = useState<L.LatLng | null>(null)
-
-    const map = useMapEvents({
-        click(e) {
-            setPosition(e.latlng)
-            onLocationSelect(e.latlng.lat, e.latlng.lng)
-            map.flyTo(e.latlng, map.getZoom())
-        },
-    })
-
-    return position === null ? null : (
-        <Marker position={position} icon={icon} />
-    )
 }
 
 export function LocationPicker({ value, onChange }: LocationPickerProps) {
@@ -57,32 +43,12 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
             const data = await response.json()
 
             if (data && data.length > 0) {
-                const { lat, lon, display_name } = data[0]
-                // We'll let the user confirm on the map, but for now just update text
-                // Ideally we'd center the map there
+                // In a real implementation we would pass this to the map to fly to
+                // For now, the user can manually navigate or we can implement a map ref later
+                console.log('Found:', data[0])
             }
         } catch (error) {
             console.error('Search failed:', error)
-        }
-    }
-
-    const handleLocationSelect = async (lat: number, lng: number) => {
-        try {
-            // Reverse geocode to get address
-            const response = await fetch(
-                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
-            )
-            const data = await response.json()
-
-            const address = data.display_name || `${lat}, ${lng}`
-            setDisplayValue(address)
-            onChange(address, lat, lng)
-            // setIsMapOpen(false) // Keep open to allow adjustment
-        } catch (error) {
-            console.error('Reverse geocode failed:', error)
-            const coords = `${lat}, ${lng}`
-            setDisplayValue(coords)
-            onChange(coords, lat, lng)
         }
     }
 
@@ -110,17 +76,13 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
 
             {isMapOpen && (
                 <div className="h-[300px] w-full rounded-md border overflow-hidden relative z-0">
-                    <MapContainer
-                        center={[-5.12, -35.64]} // Default to São Miguel do Gostoso
-                        zoom={13}
-                        style={{ height: '100%', width: '100%' }}
-                    >
-                        <TileLayer
-                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                        />
-                        <LocationMarker onLocationSelect={handleLocationSelect} />
-                    </MapContainer>
+                    <LocationPickerMap
+                        onLocationSelect={(lat, lng, address) => {
+                            setDisplayValue(address)
+                            onChange(address, lat, lng)
+                        }}
+                    />
+
                     <div className="absolute top-2 left-2 right-2 z-[1000] flex gap-2">
                         <Input
                             className="bg-white/90 backdrop-blur-sm"
