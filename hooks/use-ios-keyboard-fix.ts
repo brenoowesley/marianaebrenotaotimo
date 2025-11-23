@@ -14,14 +14,18 @@ export function useIOSKeyboardFix(enabled: boolean = true) {
         const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
             (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
 
-        console.log('🎯 iOS Keyboard Fix - Enabled:', enabled, 'Is iOS:', isIOS)
+        if (process.env.NODE_ENV === 'development') {
+            console.log('🎯 iOS Keyboard Fix - Enabled:', enabled, 'Is iOS:', isIOS)
+        }
 
         if (!isIOS) return
 
         const handleFocus = (e: Event) => {
             const target = e.target as HTMLElement
 
-            console.log('📱 Input focused:', target.tagName, target.id || 'no-id')
+            if (process.env.NODE_ENV === 'development') {
+                console.log('📱 Input focused:', target.tagName, target.id || 'no-id')
+            }
 
             // Force scroll with multiple strategies
             const scrollIntoViewAggressively = () => {
@@ -57,7 +61,9 @@ export function useIOSKeyboardFix(enabled: boolean = true) {
         // Attach to existing inputs
         const attachListeners = () => {
             const inputs = document.querySelectorAll('input, textarea, select')
-            console.log('🔗 Attaching listeners to', inputs.length, 'inputs')
+            if (process.env.NODE_ENV === 'development') {
+                console.log('🔗 Attaching listeners to', inputs.length, 'inputs')
+            }
 
             inputs.forEach(input => {
                 input.addEventListener('focus', handleFocus, { passive: true })
@@ -72,7 +78,9 @@ export function useIOSKeyboardFix(enabled: boolean = true) {
         const observer = new MutationObserver(() => {
             const currentInputs = document.querySelectorAll('input, textarea, select')
             if (currentInputs.length !== initialInputs.length) {
-                console.log('🔄 Input count changed, reattaching listeners')
+                if (process.env.NODE_ENV === 'development') {
+                    console.log('🔄 Input count changed, reattaching listeners')
+                }
                 initialInputs.forEach(input => {
                     input.removeEventListener('focus', handleFocus)
                 })

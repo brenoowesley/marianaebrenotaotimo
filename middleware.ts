@@ -2,13 +2,22 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { updateSession } from '@/utils/supabase/middleware'
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    throw new Error(
+        'Missing Supabase environment variables in middleware. Please check your .env.local file.'
+    )
+}
+
 export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl
 
     // Create Supabase client for auth checking
     const supabase = createServerClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        SUPABASE_URL as string,
+        SUPABASE_ANON_KEY as string,
         {
             cookies: {
                 get(name: string) {
