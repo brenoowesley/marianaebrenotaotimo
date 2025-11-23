@@ -21,11 +21,12 @@ import { StarRating } from '@/components/star-rating'
 import { X } from 'lucide-react'
 
 import { MultiSelect } from '@/components/ui/multi-select'
+import { LocationPicker } from '@/components/location-picker'
 
 interface TemplateField {
     id: string
     name: string
-    type: 'text' | 'checkbox' | 'date' | 'link' | 'rating' | 'select' | 'tags'
+    type: 'text' | 'checkbox' | 'date' | 'link' | 'rating' | 'select' | 'tags' | 'address'
     icon?: string
     options?: string[]
 }
@@ -313,6 +314,16 @@ export function EditItemDialog({ item, templateSchema, existingTags = {}, open, 
                                                     [field.id]: selected
                                                 })}
                                                 placeholder={`Select ${field.name}...`}
+                                            />
+                                        )}
+
+                                        {field.type === 'address' && (
+                                            <LocationPicker
+                                                value={properties[field.id] || ''}
+                                                onChange={(value, lat, lng) => setProperties({
+                                                    ...properties,
+                                                    [field.id]: value
+                                                })}
                                             />
                                         )}
                                     </div>
