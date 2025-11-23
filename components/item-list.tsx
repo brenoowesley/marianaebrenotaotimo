@@ -270,8 +270,8 @@ export function ItemList({ items, templateSchema, existingTags = {} }: ItemListP
         }),
         useSensor(TouchSensor, {
             activationConstraint: {
-                delay: 250,
-                tolerance: 5,
+                delay: 150,        // Reduced from 250ms for faster response
+                tolerance: 8,      // Increased from 5px for better touch accuracy
             },
         }),
         useSensor(KeyboardSensor, {
@@ -414,13 +414,25 @@ export function ItemList({ items, templateSchema, existingTags = {} }: ItemListP
             const nextItem = newItems[newIndex + 1]
 
             if (!prevItem && !nextItem) {
+                // Empty list
                 newOrderIndex = 1000
             } else if (!prevItem) {
-                newOrderIndex = (nextItem.order_index || 0) / 2
+                // First item in list - protect against division by zero
+                const nextOrder = nextItem.order_index || 1000
+                newOrderIndex = nextOrder === 0 ? 500 : nextOrder / 2
             } else if (!nextItem) {
+                // Last item in list
                 newOrderIndex = (prevItem.order_index || 0) + 1000
             } else {
-                newOrderIndex = ((prevItem.order_index || 0) + (nextItem.order_index || 0)) / 2
+                // Between two items
+                const prevOrder = prevItem.order_index || 0
+                const nextOrder = nextItem.order_index || 1000
+                newOrderIndex = (prevOrder + nextOrder) / 2
+
+                // Prevent convergence to zero with very small numbers
+                if (newOrderIndex <= 0.001) {
+                    newOrderIndex = Date.now() / 1000  // Use timestamp as fallback
+                }
             }
 
             // Update Supabase
