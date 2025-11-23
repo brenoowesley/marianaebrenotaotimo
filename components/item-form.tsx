@@ -36,6 +36,8 @@ interface ItemFormProps {
 export function ItemForm({ categoryId, templateSchema, existingTags = {}, onSuccess }: ItemFormProps) {
     const [title, setTitle] = useState('')
     const [properties, setProperties] = useState<Record<string, any>>({})
+    const [latitude, setLatitude] = useState<number | null>(null)
+    const [longitude, setLongitude] = useState<number | null>(null)
     const [loading, setLoading] = useState(false)
     const router = useRouter()
     const supabase = createClient()
@@ -59,6 +61,8 @@ export function ItemForm({ categoryId, templateSchema, existingTags = {}, onSucc
                 title,
                 properties_value: properties,
                 status: 'Planned', // Default status
+                latitude,
+                longitude,
             })
 
             if (error) throw error
@@ -175,8 +179,10 @@ export function ItemForm({ categoryId, templateSchema, existingTags = {}, onSucc
                         value={properties[field.id] || ''}
                         onChange={(value, lat, lng) => {
                             handlePropertyChange(field.id, value)
-                            // We could also store lat/lng separately if needed, 
-                            // but for now we'll rely on the address string or update the item later
+                            if (lat && lng) {
+                                setLatitude(lat)
+                                setLongitude(lng)
+                            }
                         }}
                     />
                 )

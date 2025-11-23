@@ -40,6 +40,8 @@ interface EditItemDialogProps {
         notes: string
         item_photo_url: string | null
         rating: number | null
+        latitude?: number | null
+        longitude?: number | null
     }
     templateSchema: TemplateField[]
     existingTags?: Record<string, string[]>
@@ -70,6 +72,8 @@ export function EditItemDialog({ item, templateSchema, existingTags = {}, open, 
     const [properties, setProperties] = useState(normalizeProperties(item.properties_value, templateSchema))
     const [notes, setNotes] = useState(item.notes || '')
     const [rating, setRating] = useState(item.rating || 0)
+    const [latitude, setLatitude] = useState<number | null>(item.latitude || null)
+    const [longitude, setLongitude] = useState<number | null>(item.longitude || null)
     const [photoFile, setPhotoFile] = useState<File | null>(null)
     const [photoPreview, setPhotoPreview] = useState<string>(item.item_photo_url || '')
     const [loading, setLoading] = useState(false)
@@ -138,6 +142,8 @@ export function EditItemDialog({ item, templateSchema, existingTags = {}, open, 
                     notes,
                     rating: rating > 0 ? rating : null,
                     item_photo_url: photoUrl,
+                    latitude,
+                    longitude,
                 })
                 .eq('id', item.id)
 
@@ -320,10 +326,16 @@ export function EditItemDialog({ item, templateSchema, existingTags = {}, open, 
                                         {field.type === 'address' && (
                                             <LocationPicker
                                                 value={properties[field.id] || ''}
-                                                onChange={(value, lat, lng) => setProperties({
-                                                    ...properties,
-                                                    [field.id]: value
-                                                })}
+                                                onChange={(value, lat, lng) => {
+                                                    setProperties({
+                                                        ...properties,
+                                                        [field.id]: value
+                                                    })
+                                                    if (lat && lng) {
+                                                        setLatitude(lat)
+                                                        setLongitude(lng)
+                                                    }
+                                                }}
                                             />
                                         )}
                                     </div>
