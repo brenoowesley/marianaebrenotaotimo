@@ -3,7 +3,6 @@ import * as DialogPrimitive from "@radix-ui/react-dialog"
 import { X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
-import { useIOSKeyboardFix } from "@/hooks/use-ios-keyboard-fix"
 
 const Dialog = DialogPrimitive.Root
 
@@ -20,7 +19,7 @@ const DialogOverlay = React.forwardRef<
     <DialogPrimitive.Overlay
         ref={ref}
         className={cn(
-            "fixed inset-0 h-[100dvh] w-full z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+            "fixed inset-0 h-[100dvh] w-full z-40 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
             className
         )}
         {...props}
@@ -32,33 +31,35 @@ const DialogContent = React.forwardRef<
     React.ElementRef<typeof DialogPrimitive.Content>,
     React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
 >(({ className, children, ...props }, ref) => {
-    // Fix iOS keyboard overlapping inputs
-    useIOSKeyboardFix(true)
-
     return (
         <DialogPortal>
             <DialogOverlay />
             <DialogPrimitive.Content
                 ref={ref}
                 className={cn(
-                    // Mobile: Full screen flex container for keyboard adaptation
-                    "fixed inset-0 h-[100dvh] w-full z-50 flex items-center justify-center p-6",
-                    "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+                    // Mobile: scrollable fullscreen container - KEY FIX FOR iOS KEYBOARD
+                    "fixed inset-0 z-50 overflow-y-auto",
+                    "data-[state=open]:animate-in data-[state=closed]:animate-out",
+                    "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
 
-                    // Desktop: Centered with max height
-                    "sm:relative sm:w-full sm:max-w-lg sm:max-h-[90dvh]",
+                    // Desktop: centered modal
+                    "sm:left-[50%] sm:top-[50%] sm:-translate-x-1/2 sm:-translate-y-1/2",
+                    "sm:h-auto sm:max-w-lg sm:inset-auto sm:overflow-visible",
                     "sm:data-[state=closed]:zoom-out-95 sm:data-[state=open]:zoom-in-95",
 
                     className
                 )}
                 {...props}
             >
-                <div className="relative w-full max-w-lg max-h-[90dvh] overflow-y-auto bg-background shadow-lg rounded-lg border-0 sm:border pb-[max(env(safe-area-inset-bottom),1.5rem)]">
-                    {children}
-                    <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground z-50">
-                        <X className="h-4 w-4" />
-                        <span className="sr-only">Close</span>
-                    </DialogPrimitive.Close>
+                {/* THE KEY FIX: items-end on mobile, items-center on desktop */}
+                <div className="min-h-[100dvh] flex items-end sm:items-center justify-center p-6">
+                    <div className="w-full max-w-lg bg-background shadow-lg rounded-lg border pb-[max(env(safe-area-inset-bottom),1.5rem)] relative">
+                        {children}
+                        <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none z-50">
+                            <X className="h-4 w-4" />
+                            <span className="sr-only">Close</span>
+                        </DialogPrimitive.Close>
+                    </div>
                 </div>
             </DialogPrimitive.Content>
         </DialogPortal>
