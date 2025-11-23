@@ -51,18 +51,20 @@ export default async function RootLayout({
 
     return (
         <html lang="en" suppressHydrationWarning>
-            <body className={`${inter.className} ${caveat.variable}`}>
+            <body className={`${inter.className} ${caveat.variable} h-[100dvh] overflow-hidden`}>
                 <ThemeProvider
                     attribute="class"
                     defaultTheme="dark"
                     enableSystem
                     disableTransitionOnChange
                 >
-                    {isAuthenticated && <Header />}
-                    <main className={isAuthenticated ? 'pb-16 md:pb-0' : ''}>
-                        {children}
-                    </main>
-                    {isAuthenticated && <BottomNav />}
+                    <div className="h-full flex flex-col">
+                        {isAuthenticated && <Header />}
+                        <main className={`flex-1 overflow-y-auto over-scroll-behavior-y-contain ${isAuthenticated ? 'pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0' : ''}`}>
+                            {children}
+                        </main>
+                        {isAuthenticated && <BottomNav />}
+                    </div>
                 </ThemeProvider>
             </body>
         </html>
