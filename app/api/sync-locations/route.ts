@@ -3,7 +3,11 @@ import { createClient as createServerClient } from '@/utils/supabase/server'
 import { getCoordinates } from '@/utils/geocoding'
 import { NextResponse } from 'next/server'
 
-export async function GET() {
+export async function GET(request: Request) {
+    // Get force param
+    const { searchParams } = new URL(request.url)
+    const forceUpdate = searchParams.get('force') === 'true'
+
     // Tenta usar a Service Role Key para acesso admin (Bypass RLS)
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -82,59 +86,52 @@ export async function GET() {
             if (addressField) {
                 const addressValue = item.properties_value?.[addressField.id]
 
-                // Only update if we have an address AND (no coords OR force update)
-                const needsUpdate = !item.latitude || !item.longitude
+                // Update if:
+                // 1. Force update is requested
+                // 2. OR coordinates are missing
+                const shouldUpdate = forceUpdate || !item.latitude || !item.longitude
 
                 if (addressValue && typeof addressValue === 'string' && addressValue.trim().length > 0) {
-                    if (needsUpdate) {
-                        // 3. Geocode
-                        const coords = await getCoordinates(addressValue)
+                    if (shouldUpdate) {
+                        // Strategy 1: Exact address
+                        let coords = await getCoordinates(addressValue)
+                        let strategy = 'Exact'
 
-                        if (coords) {
-                            // 4. Prepare update
-                            updates.push(
-                                supabase
-                                    .from('items')
-                                    .update({
-                                        address: addressValue,
-                                        latitude: coords.lat,
-                                        longitude: coords.lng,
-                                        geocoded_at: new Date().toISOString()
-                                    })
-                                    .eq('id', item.id)
-                            )
-                            logs.push(`Synced: ${item.title} -> ${addressValue} (${coords.lat}, ${coords.lng})`)
-
-                            // Rate limiting protection (1s delay between geocodes)
+                        // Strategy 2: Append Context (RN, Brazil) if failed
+                        if (!coords && !addressValue.toLowerCase().includes('brasil')) {
+                            const contextAddr = `${addressValue}, Rio Grande do Norte, Brazil`
+                            coords = await getCoordinates(contextAddr)
+                            strategy = 'Context Added'
                             await new Promise(resolve => setTimeout(resolve, 1000))
-                        } else {
-                            logs.push(`Failed to geocode: ${item.title} -> ${addressValue}`)
+                        }
+
+                        // Strategy 3: POI Search (Title + City inferred) if failed
+                        if (!coords) {
+                            const city = addressValue.toLowerCase().includes('natal') ? 'Natal' : 'São Miguel do Gostoso'
+                            const poiAddr = `${item.title}, ${city}, Rio Grande do Norte, Brazil`
+                            coords = await getCoordinates(poiAddr)
+                            strategy = 'POI Search'
                         }
                     } else {
-                        logs.push(`Skipped: ${item.title} (Already has coordinates)`)
+                        const fieldNames = schema.map(f => f.name).join(', ')
+                        logs.push(`Skipped: ${item.title} (No address field found. Fields: ${fieldNames})`)
                     }
-                } else {
-                    logs.push(`Skipped: ${item.title} (Empty address value)`)
                 }
-            } else {
-                logs.push(`Skipped: ${item.title} (No address field found in category)`)
+
+                // Execute all updates
+                if (updates.length > 0) {
+                    await Promise.all(updates)
+                }
+
+                return NextResponse.json({
+                    success: true,
+                    mode: isAdmin ? 'ADMIN' : 'USER',
+                    total_found: items.length,
+                    processed: updates.length,
+                    logs
+                })
+
+            } catch (error: any) {
+                return NextResponse.json({ error: error.message }, { status: 500 })
             }
         }
-
-        // Execute all updates
-        if (updates.length > 0) {
-            await Promise.all(updates)
-        }
-
-        return NextResponse.json({
-            success: true,
-            mode: isAdmin ? 'ADMIN' : 'USER',
-            total_found: items.length,
-            processed: updates.length,
-            logs
-        })
-
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 })
-    }
-}
