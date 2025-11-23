@@ -37,23 +37,17 @@ const DialogContent = React.forwardRef<
             <DialogPrimitive.Content
                 ref={ref}
                 className={cn(
-                    // Mobile: scrollable fullscreen container - KEY FIX FOR iOS KEYBOARD
-                    "fixed inset-0 z-50 overflow-y-auto",
+                    // Fixed fullscreen container for all viewports
+                    "fixed inset-0 z-50",
                     "data-[state=open]:animate-in data-[state=closed]:animate-out",
                     "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
-
-                    // Desktop: centered modal
-                    "sm:left-[50%] sm:top-[50%] sm:-translate-x-1/2 sm:-translate-y-1/2",
-                    "sm:h-auto sm:max-w-lg sm:inset-auto sm:overflow-visible",
-                    "sm:data-[state=closed]:zoom-out-95 sm:data-[state=open]:zoom-in-95",
-
                     className
                 )}
                 {...props}
             >
-                {/* THE KEY FIX: items-end on mobile, items-center on desktop */}
-                <div className="min-h-[100dvh] flex items-end sm:items-center justify-center p-6">
-                    <div className="w-full max-w-lg bg-background shadow-lg rounded-lg border pb-[max(env(safe-area-inset-bottom),1.5rem)] relative">
+                {/* Flexbox centering - items-end on mobile (sheet), items-center on desktop */}
+                <div className="min-h-[100dvh] flex items-end sm:items-center justify-center p-4 sm:p-6">
+                    <div className="w-full max-w-lg bg-background shadow-lg rounded-lg border pb-[max(env(safe-area-inset-bottom),1.5rem)] sm:pb-6 relative max-h-[90vh] overflow-y-auto">
                         {children}
                         <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none z-50">
                             <X className="h-4 w-4" />
