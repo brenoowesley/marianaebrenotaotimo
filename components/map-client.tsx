@@ -1,9 +1,9 @@
-'use client'
-
 import { useEffect } from 'react'
 import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import { LatLngExpression } from 'leaflet'
+import { MapPopup } from '@/components/map-popup'
+import { renderToStaticMarkup } from 'react-dom/server'
 
 interface MapLocation {
     id: string
@@ -11,6 +11,9 @@ interface MapLocation {
     lat: number
     lng: number
     categoryName?: string
+    address: string
+    coverImage?: string
+    rating?: number
 }
 
 interface MapClientProps {
@@ -47,12 +50,16 @@ export default function MapClient({ locations }: MapClientProps) {
                     }}
                 >
                     <Popup>
-                        <div className="p-2 min-w-[150px]">
-                            <h3 className="font-semibold text-sm">{location.title}</h3>
-                            {location.categoryName && (
-                                <p className="text-xs text-muted-foreground mt-1">{location.categoryName}</p>
-                            )}
-                        </div>
+                        <div dangerouslySetInnerHTML={{
+                            __html: renderToStaticMarkup(
+                                <MapPopup
+                                    title={location.title}
+                                    coverImage={location.coverImage || null}
+                                    address={location.address}
+                                    rating={location.rating || null}
+                                />
+                            )
+                        }} />
                     </Popup>
                 </CircleMarker>
             ))}

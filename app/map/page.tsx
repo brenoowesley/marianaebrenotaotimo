@@ -16,43 +16,45 @@ export default async function MapPage() {
         return redirect('/login')
     }
 
-    // Fetch realized items
+    // Fetch realized items with coordinates
     const { data: items } = await supabase
         .from('items')
-        .select('id, title, status, categories(title)')
+        .select(`
+            id, 
+            title, 
+            status,
+            address,
+            latitude,
+            longitude,
+            rating,
+            item_photo_url,
+            categories(title)
+        `)
         .eq('status', 'Realized')
-        .order('created_at', { ascending: false })
+        .not('latitude', 'is', null)
+        .not('longitude', 'is', null)
+        .order('realized_at', { ascending: false })
 
-    const realizedItems = items || []
-
-    // MOCK LOCATIONS IN NATAL/RN FOR MVP
-    const mockLocations = realizedItems.slice(0, 4).map((item: any, index: number) => {
-        const natalLocations = [
-            { lat: -5.79448, lng: -35.211, place: 'Ponta Negra' },
-            { lat: -5.7945, lng: -35.1994, place: 'Forte dos Reis Magos' },
-            { lat: -5.7805, lng: -35.1995, place: 'Praia do Meio' },
-            { lat: -5.7733, lng: -35.2058, place: 'Genipabu' },
-        ]
-
-        const location = natalLocations[index] || natalLocations[0]
-
-        return {
-            id: item.id,
-            title: item.title,
-            lat: location.lat,
-            lng: location.lng,
-            categoryName: item.categories?.title,
-        }
-    })
+    // Map to location format
+    const realLocations = (items || []).map((item: any) => ({
+        id: item.id,
+        title: item.title,
+        lat: item.latitude,
+        lng: item.longitude,
+        address: item.address || 'Local não especificado',
+        categoryName: item.categories?.title,
+        coverImage: item.item_photo_url,
+        rating: item.rating,
+    }))
 
     // Statistics
-    const totalPlaces = mockLocations.length
-    const distinctCategories = new Set(mockLocations.map(l => l.categoryName).filter(Boolean)).size
+    const totalPlaces = realLocations.length
+    const distinctCategories = new Set(realLocations.map(l => l.categoryName).filter(Boolean)).size
 
     return (
         <div className="relative h-[calc(100vh-4rem)]">
             {/* Map */}
-            <MapWrapper locations={mockLocations} />
+            <MapWrapper locations={realLocations} />
 
             {/* Statistics Overlay */}
             <Card className="absolute top-4 right-4 z-[1000] w-80 shadow-lg bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/90">
@@ -79,8 +81,8 @@ export default async function MapPage() {
 
                     {totalPlaces > 0 && (
                         <div className="text-xs text-muted-foreground border-t pt-3">
-                            <p className="font-medium mb-1">📍 Locais em Natal/RN</p>
-                            <p>Demonstração com {totalPlaces} {totalPlaces === 1 ? 'lugar' : 'lugares'}.</p>
+                            <p className="font-medium mb-1">📍 Locais Realizados</p>
+                            <p>Mostrando {totalPlaces} {totalPlaces === 1 ? 'lugar' : 'lugares'} no mapa.</p>
                         </div>
                     )}
                 </CardContent>

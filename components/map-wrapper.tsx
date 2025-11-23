@@ -17,6 +17,9 @@ interface MapLocation {
     lat: number
     lng: number
     categoryName?: string
+    address: string
+    coverImage?: string
+    rating?: number
 }
 
 interface MapWrapperProps {
