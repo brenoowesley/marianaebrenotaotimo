@@ -6,7 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { MapPin } from 'lucide-react'
+import { MapPin, ChevronDown, ChevronUp } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 interface MapLocation {
     id: string
@@ -28,6 +29,7 @@ interface MapOverlayProps {
 export function MapOverlay({ locations }: MapOverlayProps) {
     const map = useMap()
     const [selectedMonth, setSelectedMonth] = useState<string>('all')
+    const [isMinimized, setIsMinimized] = useState(false)
 
     // Extract unique months from realized_at dates
     const months = useMemo(() => {
@@ -77,77 +79,94 @@ export function MapOverlay({ locations }: MapOverlayProps) {
 
     return (
         <div className="absolute top-4 right-4 z-[1000] w-80 flex flex-col gap-4 pointer-events-none">
-            <Card className="shadow-lg bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/90 pointer-events-auto">
-                <CardHeader className="pb-3">
+            <Card className="shadow-lg bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/90 pointer-events-auto transition-all duration-300">
+                <CardHeader className={`pb-3 ${isMinimized ? 'pb-4' : ''}`}>
                     <CardTitle className="text-lg flex justify-between items-center">
-                        <span>Estatísticas</span>
-                        <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-                            <SelectTrigger className="w-[140px] h-8 text-xs">
-                                <SelectValue placeholder="Filtrar mês" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">Todos os meses</SelectItem>
-                                {months.map(month => (
-                                    <SelectItem key={month} value={month}>
-                                        {formatMonthLabel(month)}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                        <div className="flex items-center gap-2">
+                            <span>Estatísticas</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            {!isMinimized && (
+                                <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                                    <SelectTrigger className="w-[130px] h-8 text-xs">
+                                        <SelectValue placeholder="Filtrar mês" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">Todos os meses</SelectItem>
+                                        {months.map(month => (
+                                            <SelectItem key={month} value={month}>
+                                                {formatMonthLabel(month)}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            )}
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() => setIsMinimized(!isMinimized)}
+                            >
+                                {isMinimized ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+                            </Button>
+                        </div>
                     </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="grid grid-cols-3 gap-2">
-                        <div className="space-y-1 text-center">
-                            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Lugares</p>
-                            <p className="text-2xl font-bold text-primary">{totalPlaces}</p>
-                        </div>
-                        <div className="space-y-1 text-center border-l border-border/50">
-                            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Categorias</p>
-                            <p className="text-2xl font-bold text-primary">{distinctCategories}</p>
-                        </div>
-                        <div className="space-y-1 text-center border-l border-border/50">
-                            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Nota Média</p>
-                            <div className="flex items-center justify-center gap-1">
-                                <p className="text-2xl font-bold text-primary">{averageRating}</p>
-                                <span className="text-xs text-yellow-500">★</span>
+
+                {!isMinimized && (
+                    <CardContent className="space-y-4 animate-in slide-in-from-top-2 duration-200">
+                        <div className="grid grid-cols-3 gap-2">
+                            <div className="space-y-1 text-center">
+                                <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Lugares</p>
+                                <p className="text-2xl font-bold text-primary">{totalPlaces}</p>
+                            </div>
+                            <div className="space-y-1 text-center border-l border-border/50">
+                                <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Categorias</p>
+                                <p className="text-2xl font-bold text-primary">{distinctCategories}</p>
+                            </div>
+                            <div className="space-y-1 text-center border-l border-border/50">
+                                <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Nota Média</p>
+                                <div className="flex items-center justify-center gap-1">
+                                    <p className="text-2xl font-bold text-primary">{averageRating}</p>
+                                    <span className="text-xs text-yellow-500">★</span>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    {totalPlaces === 0 && (
-                        <div className="text-sm text-muted-foreground text-center py-4 border-t">
-                            Nenhum local encontrado para este filtro.
-                        </div>
-                    )}
-
-                    {totalPlaces > 0 && (
-                        <div className="border-t pt-3">
-                            <p className="text-xs font-medium text-muted-foreground mb-2">
-                                📍 Locais ({totalPlaces})
-                            </p>
-                            <div className="max-h-[200px] overflow-y-auto space-y-1 pr-1 custom-scrollbar">
-                                {filteredLocations.map(loc => (
-                                    <button
-                                        key={loc.id}
-                                        onClick={() => handleLocationClick(loc.lat, loc.lng)}
-                                        className="w-full text-left text-sm p-2 rounded-md hover:bg-accent transition-colors flex items-start gap-2 group"
-                                    >
-                                        <MapPin className="w-3.5 h-3.5 mt-0.5 text-muted-foreground group-hover:text-primary" />
-                                        <div className="flex-1 min-w-0">
-                                            <p className="font-medium truncate">{loc.title}</p>
-                                            {loc.categoryName && (
-                                                <p className="text-[10px] text-muted-foreground truncate">
-                                                    {loc.categoryName}
-                                                </p>
-                                            )}
-                                        </div>
-                                    </button>
-                                ))}
+                        {totalPlaces === 0 && (
+                            <div className="text-sm text-muted-foreground text-center py-4 border-t">
+                                Nenhum local encontrado para este filtro.
                             </div>
-                        </div>
-                    )}
-                </CardContent>
+                        )}
+
+                        {totalPlaces > 0 && (
+                            <div className="border-t pt-3">
+                                <p className="text-xs font-medium text-muted-foreground mb-2">
+                                    📍 Locais ({totalPlaces})
+                                </p>
+                                <div className="max-h-[200px] overflow-y-auto space-y-1 pr-1 custom-scrollbar">
+                                    {filteredLocations.map(loc => (
+                                        <button
+                                            key={loc.id}
+                                            onClick={() => handleLocationClick(loc.lat, loc.lng)}
+                                            className="w-full text-left text-sm p-2 rounded-md hover:bg-accent transition-colors flex items-start gap-2 group"
+                                        >
+                                            <MapPin className="w-3.5 h-3.5 mt-0.5 text-muted-foreground group-hover:text-primary" />
+                                            <div className="flex-1 min-w-0">
+                                                <p className="font-medium truncate">{loc.title}</p>
+                                                {loc.categoryName && (
+                                                    <p className="text-[10px] text-muted-foreground truncate">
+                                                        {loc.categoryName}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </CardContent>
+                )}
             </Card>
         </div>
     )
