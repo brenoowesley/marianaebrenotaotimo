@@ -44,7 +44,7 @@ export function CategoryList({ categories = [], stats }: { categories: Category[
                 {categories.map((category) => (
                     <div key={category.id} className="relative group">
                         <Link href={`/category/${category.id}`}>
-                            <Card className="cursor-pointer hover:shadow-md transition-all duration-200 border-border/50 h-full overflow-hidden">
+                            <Card className="cursor-pointer hover:shadow-md transition-all duration-200 border-border/50 h-full overflow-hidden active:scale-[0.98] active:brightness-95">
                                 {category.cover_image_url && (
                                     <div className="h-32 w-full overflow-hidden relative">
                                         <Image

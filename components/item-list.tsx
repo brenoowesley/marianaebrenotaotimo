@@ -43,6 +43,7 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 
+import { AnimatePresence, motion } from 'framer-motion'
 import { Filter, X } from 'lucide-react'
 import {
     Popover,
@@ -111,7 +112,16 @@ const SortableItem = ({ id, children }: SortableItemProps) => {
     }
 
     return (
-        <div ref={setNodeRef} style={style} {...attributes} className="relative group">
+        <motion.div
+            ref={setNodeRef}
+            style={style}
+            {...attributes}
+            className="relative group"
+            layout
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, x: 200, transition: { duration: 0.2 } }}
+        >
             {/* Drag Handle - Only this area triggers drag */}
             <div
                 {...listeners}
@@ -124,7 +134,7 @@ const SortableItem = ({ id, children }: SortableItemProps) => {
             <div className="pl-2">
                 {children}
             </div>
-        </div>
+        </motion.div>
     )
 }
 
@@ -798,11 +808,13 @@ export function ItemList({ items, templateSchema, existingTags = {} }: ItemListP
                             items={plannedItems.map(i => i.id)}
                             strategy={verticalListSortingStrategy}
                         >
-                            {plannedItems.map((item) => (
-                                <SortableItem key={item.id} id={item.id}>
-                                    <ItemCard item={item} />
-                                </SortableItem>
-                            ))}
+                            <AnimatePresence mode="popLayout">
+                                {plannedItems.map((item) => (
+                                    <SortableItem key={item.id} id={item.id}>
+                                        <ItemCard item={item} />
+                                    </SortableItem>
+                                ))}
+                            </AnimatePresence>
                         </SortableContext>
                     </TabsContent>
 
@@ -817,11 +829,13 @@ export function ItemList({ items, templateSchema, existingTags = {} }: ItemListP
                             items={realizedItems.map((item) => item.id)}
                             strategy={verticalListSortingStrategy}
                         >
-                            {realizedItems.map((item) => (
-                                <SortableItem key={item.id} id={item.id}>
-                                    <ItemCard item={item} />
-                                </SortableItem>
-                            ))}
+                            <AnimatePresence mode="popLayout">
+                                {realizedItems.map((item) => (
+                                    <SortableItem key={item.id} id={item.id}>
+                                        <ItemCard item={item} />
+                                    </SortableItem>
+                                ))}
+                            </AnimatePresence>
                         </SortableContext>
                     </TabsContent>
                 </Tabs>
