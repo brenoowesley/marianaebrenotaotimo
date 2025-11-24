@@ -55,6 +55,14 @@ export function MapOverlay({ locations }: MapOverlayProps) {
     const totalPlaces = filteredLocations.length
     const distinctCategories = new Set(filteredLocations.map(l => l.categoryName).filter(Boolean)).size
 
+    // Calculate average rating
+    const averageRating = useMemo(() => {
+        const ratedLocations = filteredLocations.filter(l => l.rating && l.rating > 0)
+        if (ratedLocations.length === 0) return 0
+        const sum = ratedLocations.reduce((acc, curr) => acc + (curr.rating || 0), 0)
+        return (sum / ratedLocations.length).toFixed(1)
+    }, [filteredLocations])
+
     const handleLocationClick = (lat: number, lng: number) => {
         map.flyTo([lat, lng], 16, {
             duration: 1.5
@@ -89,14 +97,21 @@ export function MapOverlay({ locations }: MapOverlayProps) {
                     </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-1">
-                            <p className="text-sm text-muted-foreground">Lugares</p>
-                            <p className="text-3xl font-bold text-primary">{totalPlaces}</p>
+                    <div className="grid grid-cols-3 gap-2">
+                        <div className="space-y-1 text-center">
+                            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Lugares</p>
+                            <p className="text-2xl font-bold text-primary">{totalPlaces}</p>
                         </div>
-                        <div className="space-y-1">
-                            <p className="text-sm text-muted-foreground">Categorias</p>
-                            <p className="text-3xl font-bold text-primary">{distinctCategories}</p>
+                        <div className="space-y-1 text-center border-l border-border/50">
+                            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Categorias</p>
+                            <p className="text-2xl font-bold text-primary">{distinctCategories}</p>
+                        </div>
+                        <div className="space-y-1 text-center border-l border-border/50">
+                            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Nota Média</p>
+                            <div className="flex items-center justify-center gap-1">
+                                <p className="text-2xl font-bold text-primary">{averageRating}</p>
+                                <span className="text-xs text-yellow-500">★</span>
+                            </div>
                         </div>
                     </div>
 
