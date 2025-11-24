@@ -19,6 +19,7 @@ import { StarRating } from '@/components/star-rating'
 import { X, ExternalLink, Calendar, CheckSquare, Type, Hash } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { format } from 'date-fns'
+import { compressImage } from '@/utils/image-compression'
 
 interface Item {
     id: string
@@ -78,13 +79,21 @@ export function ItemDetail({ item, open, onOpenChange, templateSchema }: ItemDet
 
     const uploadPhoto = async (file: File, userId: string): Promise<string | null> => {
         try {
-            const fileExt = file.name.split('.').pop()
+            // Check auto-compression preference
+            const shouldCompress = localStorage.getItem('auto_compress_images') !== 'false' // Default to true
+
+            let fileToUpload = file
+            if (shouldCompress) {
+                fileToUpload = await compressImage(file)
+            }
+
+            const fileExt = fileToUpload.name.split('.').pop() || 'jpg'
             const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`
             const filePath = `${userId}/items/${fileName}`
 
             const { error: uploadError } = await supabase.storage
                 .from('category-covers')
-                .upload(filePath, file)
+                .upload(filePath, fileToUpload)
 
             if (uploadError) throw uploadError
 

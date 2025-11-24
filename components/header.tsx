@@ -12,7 +12,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { User, LogOut } from 'lucide-react'
+import { User, LogOut, Settings } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 
@@ -71,6 +71,11 @@ export function Header() {
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => router.push('/settings')}>
+                                <Settings className="mr-2 h-4 w-4" />
+                                Configurações
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
                             <DropdownMenuItem onClick={handleSignOut}>
                                 <LogOut className="mr-2 h-4 w-4" />
                                 Sair

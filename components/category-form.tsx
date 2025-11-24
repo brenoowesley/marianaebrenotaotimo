@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label'
 import { TemplateBuilder, type TemplateField } from '@/components/template-builder'
 import { DrawerClose, DrawerFooter } from '@/components/ui/drawer'
 import { X, Upload } from 'lucide-react'
+import { compressImage } from '@/utils/image-compression'
 
 interface CategoryFormProps {
     onSuccess?: () => void
@@ -56,13 +57,21 @@ export function CategoryForm({ onSuccess }: CategoryFormProps) {
 
     const uploadCoverImage = async (file: File, userId: string): Promise<string | null> => {
         try {
-            const fileExt = file.name.split('.').pop()
+            // Check auto-compression preference
+            const shouldCompress = localStorage.getItem('auto_compress_images') !== 'false' // Default to true
+
+            let fileToUpload = file
+            if (shouldCompress) {
+                fileToUpload = await compressImage(file)
+            }
+
+            const fileExt = fileToUpload.name.split('.').pop() || 'jpg'
             const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`
             const filePath = `${userId}/${fileName}`
 
             const { error: uploadError } = await supabase.storage
                 .from('category-covers')
-                .upload(filePath, file)
+                .upload(filePath, fileToUpload)
 
             if (uploadError) throw uploadError
 

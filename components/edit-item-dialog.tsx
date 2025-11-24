@@ -22,6 +22,7 @@ import { X } from 'lucide-react'
 
 import { MultiSelect } from '@/components/ui/multi-select'
 import { LocationPicker } from '@/components/location-picker'
+import { compressImage } from '@/utils/image-compression'
 
 interface TemplateField {
     id: string
@@ -98,13 +99,21 @@ export function EditItemDialog({ item, templateSchema, existingTags = {}, open, 
 
     const uploadPhoto = async (file: File, userId: string): Promise<string | null> => {
         try {
-            const fileExt = file.name.split('.').pop()
+            // Check auto-compression preference
+            const shouldCompress = localStorage.getItem('auto_compress_images') !== 'false' // Default to true
+
+            let fileToUpload = file
+            if (shouldCompress) {
+                fileToUpload = await compressImage(file)
+            }
+
+            const fileExt = fileToUpload.name.split('.').pop() || 'jpg'
             const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`
             const filePath = `${userId}/items/${fileName}`
 
             const { error: uploadError } = await supabase.storage
-                .from('category-covers')
-                .upload(filePath, file)
+                .from('category-covers') // Note: using category-covers bucket as per original code, though path is items/
+                .upload(filePath, fileToUpload)
 
             if (uploadError) throw uploadError
 
