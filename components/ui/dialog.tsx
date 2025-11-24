@@ -47,7 +47,7 @@ const DialogContent = React.forwardRef<
                 {/* Flexbox centering - items-end on mobile (sheet), items-center on desktop */}
                 <div className="min-h-[100dvh] flex items-end sm:items-center justify-center p-4 sm:p-6">
                     <div className={cn(
-                        "w-full max-w-lg bg-background shadow-lg rounded-lg border pb-[max(env(safe-area-inset-bottom),1.5rem)] sm:pb-6 relative max-h-[90vh] overflow-y-auto",
+                        "w-full max-w-lg bg-background shadow-lg rounded-lg border p-4 sm:p-6 pb-[max(env(safe-area-inset-bottom),1.5rem)] sm:pb-6 relative max-h-[90vh] overflow-y-auto",
                         className
                     )}>
                         {children}
