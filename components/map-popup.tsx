@@ -37,20 +37,20 @@ export function MapPopup({ title, coverImage, notes, rating }: MapPopupProps) {
                     {title}
                 </h3>
 
-                {/* Notes (formerly Address) */}
-                <p className="text-xs text-gray-500 line-clamp-3">
-                    {notes || 'Sem observações.'}
-                </p>
-
                 {/* Rating */}
                 {rating !== null && rating > 0 && (
-                    <div className="flex items-center gap-1 pt-1">
+                    <div className="flex items-center gap-1">
                         <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                        <span className="text-xs font-semibold text-gray-700 font-handwriting">
+                        <span className="text-xs font-semibold text-gray-700">
                             {rating.toFixed(1)}
                         </span>
                     </div>
                 )}
+
+                {/* Notes */}
+                <p className="text-sm text-gray-600 font-handwriting line-clamp-4 leading-tight pt-1">
+                    {notes || 'Sem observações.'}
+                </p>
             </div>
         </div>
     )
