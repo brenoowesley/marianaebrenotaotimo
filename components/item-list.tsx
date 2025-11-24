@@ -182,7 +182,7 @@ const FilterPopover = ({ field, options, activeFilters, toggleFilter, setFilters
                     )}
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[200px] p-0" align="start">
+            <PopoverContent className="w-[200px] p-0 z-[200]" align="start">
                 <Command>
                     <CommandInput placeholder={`Filter ${field.name}...`} />
                     <CommandList>
@@ -194,14 +194,10 @@ const FilterPopover = ({ field, options, activeFilters, toggleFilter, setFilters
                                     <CommandItem
                                         key={option}
                                         value={option}
-                                        onSelect={(currentValue) => {
-                                            console.log('CommandItem onSelect fired. Option:', option, 'CurrentValue:', currentValue)
+                                        onSelect={() => {
                                             toggleFilter(field.id, option)
                                         }}
-                                        onClick={() => {
-                                            console.log('CommandItem onClick fired. Option:', option)
-                                            toggleFilter(field.id, option)
-                                        }}
+                                        className="pointer-events-auto cursor-pointer"
                                     >
                                         <div
                                             className={cn(
@@ -230,7 +226,7 @@ const FilterPopover = ({ field, options, activeFilters, toggleFilter, setFilters
                                             })
                                             setOpen(false)
                                         }}
-                                        className="justify-center text-center"
+                                        className="justify-center text-center pointer-events-auto cursor-pointer"
                                         value="clear-filters"
                                     >
                                         Clear filters
