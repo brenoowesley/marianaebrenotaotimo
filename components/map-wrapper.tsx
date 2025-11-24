@@ -20,12 +20,13 @@ interface MapLocation {
     address: string
     coverImage?: string
     rating?: number
+    notes?: string
+    realized_at?: string | null
 }
 
 interface MapWrapperProps {
     locations: MapLocation[]
 }
-
 export function MapWrapper({ locations }: MapWrapperProps) {
     return <MapClient locations={locations} />
 }

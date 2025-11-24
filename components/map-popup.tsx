@@ -3,7 +3,7 @@ import { MapPin, Star } from 'lucide-react'
 interface MapPopupProps {
     title: string
     coverImage: string | null
-    address: string
+    notes?: string
     rating: number | null
 }
 
@@ -11,7 +11,7 @@ interface MapPopupProps {
  * Mini Polaroid-style popup component for map markers
  * Displays item information in a compact, stylish card
  */
-export function MapPopup({ title, coverImage, address, rating }: MapPopupProps) {
+export function MapPopup({ title, coverImage, notes, rating }: MapPopupProps) {
     return (
         <div className="w-48 bg-white rounded-sm shadow-md overflow-hidden">
             {/* Image Area */}
@@ -37,9 +37,9 @@ export function MapPopup({ title, coverImage, address, rating }: MapPopupProps) 
                     {title}
                 </h3>
 
-                {/* Address */}
-                <p className="text-xs text-gray-500 line-clamp-2">
-                    {address}
+                {/* Notes (formerly Address) */}
+                <p className="text-xs text-gray-500 line-clamp-3">
+                    {notes || 'Sem observações.'}
                 </p>
 
                 {/* Rating */}

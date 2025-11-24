@@ -28,6 +28,8 @@ export default async function MapPage() {
             longitude,
             rating,
             item_photo_url,
+            notes,
+            realized_at,
             categories(title)
         `)
         .eq('status', 'Realized')
@@ -45,48 +47,14 @@ export default async function MapPage() {
         categoryName: item.categories?.title,
         coverImage: item.item_photo_url,
         rating: item.rating,
+        notes: item.notes,
+        realized_at: item.realized_at,
     }))
-
-    // Statistics
-    const totalPlaces = realLocations.length
-    const distinctCategories = new Set(realLocations.map(l => l.categoryName).filter(Boolean)).size
 
     return (
         <div className="relative h-[calc(100vh-4rem)]">
             {/* Map */}
             <MapWrapper locations={realLocations} />
-
-            {/* Statistics Overlay */}
-            <Card className="absolute top-4 right-4 z-[1000] w-80 shadow-lg bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/90">
-                <CardHeader className="pb-3">
-                    <CardTitle className="text-lg">Estatísticas do Mapa</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-1">
-                            <p className="text-sm text-muted-foreground">Lugares Visitados</p>
-                            <p className="text-3xl font-bold text-primary">{totalPlaces}</p>
-                        </div>
-                        <div className="space-y-1">
-                            <p className="text-sm text-muted-foreground">Categorias</p>
-                            <p className="text-3xl font-bold text-primary">{distinctCategories}</p>
-                        </div>
-                    </div>
-
-                    {totalPlaces === 0 && (
-                        <div className="text-sm text-muted-foreground text-center py-4 border-t">
-                            Nenhum item realizado encontrado. Marque alguns itens como "Realized" para vê-los no mapa!
-                        </div>
-                    )}
-
-                    {totalPlaces > 0 && (
-                        <div className="text-xs text-muted-foreground border-t pt-3">
-                            <p className="font-medium mb-1">📍 Locais Realizados</p>
-                            <p>Mostrando {totalPlaces} {totalPlaces === 1 ? 'lugar' : 'lugares'} no mapa.</p>
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
         </div>
     )
 }
