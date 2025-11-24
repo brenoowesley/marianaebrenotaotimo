@@ -3,13 +3,13 @@ import { redirect } from 'next/navigation'
 import { Plus, ArrowLeft, BarChart3 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer'
-import { ItemForm } from '@/components/item-form'
 import { ItemList } from '@/components/item-list'
 import { ChooseForMeButton } from '@/components/choose-for-me-button'
 import { CoverReposition } from '@/components/cover-reposition'
 import { CategoryAnalytics } from '@/components/category-analytics'
 import { IOSKeyboardFixWrapper } from '@/components/ios-keyboard-fix-wrapper'
 import Link from 'next/link'
+import { AddItemButton } from '@/components/add-item-button'
 
 export const dynamic = 'force-dynamic'
 
@@ -160,29 +160,12 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
                             items={plannedItems}
                             templateSchema={category.template_schema}
                         />
-                        <Drawer>
-                            <DrawerTrigger asChild>
-                                <Button>
-                                    <Plus className="mr-2 h-4 w-4" />
-                                    Insira um item
-                                </Button>
-                            </DrawerTrigger>
-                            <DrawerContent>
-                                <div className="mx-auto w-full max-w-sm">
-                                    <DrawerHeader>
-                                        <DrawerTitle>Insira um novo item</DrawerTitle>
-                                        <DrawerDescription>
-                                            Preencha os detalhes do novo item.
-                                        </DrawerDescription>
-                                    </DrawerHeader>
-                                    <ItemForm
-                                        categoryId={category.id}
-                                        templateSchema={category.template_schema}
-                                        existingTags={existingTags}
-                                    />
-                                </div>
-                            </DrawerContent>
-                        </Drawer>
+
+                        <AddItemButton
+                            categoryId={category.id}
+                            templateSchema={category.template_schema}
+                            existingTags={existingTags}
+                        />
                     </div>
                 </div>
 
@@ -195,32 +178,12 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
 
                 {/* Floating Action Button (Mobile Only) */}
                 <div className="md:hidden">
-                    <Drawer>
-                        <DrawerTrigger asChild>
-                            <Button
-                                size="lg"
-                                className="fixed bottom-24 right-6 z-50 shadow-lg rounded-full px-6"
-                            >
-                                <Plus className="mr-2 h-5 w-5" />
-                                Novo Item
-                            </Button>
-                        </DrawerTrigger>
-                        <DrawerContent>
-                            <div className="mx-auto w-full max-w-sm">
-                                <DrawerHeader>
-                                    <DrawerTitle>Insira um novo item</DrawerTitle>
-                                    <DrawerDescription>
-                                        Preencha os detalhes do novo item.
-                                    </DrawerDescription>
-                                </DrawerHeader>
-                                <ItemForm
-                                    categoryId={category.id}
-                                    templateSchema={category.template_schema}
-                                    existingTags={existingTags}
-                                />
-                            </div>
-                        </DrawerContent>
-                    </Drawer>
+                    <AddItemButton
+                        categoryId={category.id}
+                        templateSchema={category.template_schema}
+                        existingTags={existingTags}
+                        isFloating
+                    />
                 </div>
             </div>
         </IOSKeyboardFixWrapper>
